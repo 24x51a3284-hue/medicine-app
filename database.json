@@ -1,0 +1,2911 @@
+{
+  "users": [
+    {
+      "_id": "admin1",
+      "name": "Admin User",
+      "email": "admin@medicineapp.com",
+      "password": "$2a$10$qqq2kweA0.Dk94siAOrp6OZQ5KwD51vkgcA5idi5g/VQD148OE.Hu",
+      "role": "admin",
+      "createdAt": "2026-03-01T20:05:29.995Z"
+    },
+    {
+      "_id": "store1",
+      "name": "Rajesh Kumar",
+      "email": "store@medicineapp.com",
+      "password": "$2a$10$G1GlneJ8h66D7pPpqPsCjOVXepNObk/KaNBaqEqegvuc06LhMcisy",
+      "role": "store",
+      "phone": "9876543210",
+      "createdAt": "2026-03-01T20:05:30.327Z"
+    },
+    {
+      "_id": "store2",
+      "name": "Priya Sharma",
+      "email": "store2@medicineapp.com",
+      "password": "$2a$10$wZnJ7ub9L/DB/UHM1RDOv.6PJftd2zI3lnLZB.TjYMM8f7eWSmZNy",
+      "role": "store",
+      "phone": "9876543211",
+      "createdAt": "2026-03-01T20:05:30.459Z"
+    },
+    {
+      "_id": "user1",
+      "name": "Test User",
+      "email": "user@medicineapp.com",
+      "password": "$2a$10$zP3OjBVIle3XcavM4J2v5O2SSmquMN4ldwCUS4OZvK1Z7TiCJI6uS",
+      "role": "user",
+      "phone": "9000000001",
+      "createdAt": "2026-03-01T20:05:30.560Z"
+    }
+  ],
+  "medicines": [
+    {
+      "_id": "m01",
+      "name": "Paracetamol 500mg",
+      "genericName": "Acetaminophen",
+      "category": "Analgesic",
+      "manufacturer": "GSK",
+      "description": "Common painkiller and fever reducer used for mild to moderate pain.",
+      "uses": [
+        "Fever",
+        "Headache",
+        "Toothache",
+        "Body pain",
+        "Cold & flu"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Liver damage (overdose)",
+        "Skin rash"
+      ],
+      "dosage": "1-2 tablets every 4-6 hours",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m02",
+        "m03"
+      ]
+    },
+    {
+      "_id": "m02",
+      "name": "Ibuprofen 400mg",
+      "genericName": "Ibuprofen",
+      "category": "Analgesic",
+      "manufacturer": "Abbott",
+      "description": "Anti-inflammatory pain reliever for moderate pain and inflammation.",
+      "uses": [
+        "Pain relief",
+        "Inflammation",
+        "Fever",
+        "Arthritis",
+        "Menstrual pain"
+      ],
+      "sideEffects": [
+        "Stomach upset",
+        "Heartburn",
+        "Dizziness",
+        "Bleeding risk"
+      ],
+      "dosage": "1 tablet every 6-8 hours with food",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m01",
+        "m03"
+      ]
+    },
+    {
+      "_id": "m03",
+      "name": "Aspirin 75mg",
+      "genericName": "Acetylsalicylic Acid",
+      "category": "Analgesic",
+      "manufacturer": "Bayer",
+      "description": "Used for pain relief, fever, and as blood thinner.",
+      "uses": [
+        "Pain relief",
+        "Fever",
+        "Blood thinner",
+        "Heart attack prevention"
+      ],
+      "sideEffects": [
+        "Stomach bleeding",
+        "Nausea",
+        "Ringing in ears"
+      ],
+      "dosage": "1 tablet daily or as prescribed",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m01",
+        "m02"
+      ]
+    },
+    {
+      "_id": "m04",
+      "name": "Diclofenac 50mg",
+      "genericName": "Diclofenac Sodium",
+      "category": "Analgesic",
+      "manufacturer": "Novartis",
+      "description": "NSAID for arthritis, muscle pain, and inflammation.",
+      "uses": [
+        "Arthritis",
+        "Muscle pain",
+        "Back pain",
+        "Joint pain"
+      ],
+      "sideEffects": [
+        "Stomach pain",
+        "Heartburn",
+        "Headache",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet 2-3 times daily with food",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m02"
+      ]
+    },
+    {
+      "_id": "m05",
+      "name": "Tramadol 50mg",
+      "genericName": "Tramadol HCl",
+      "category": "Analgesic",
+      "manufacturer": "Cipla",
+      "description": "Opioid pain medication for moderate to severe pain.",
+      "uses": [
+        "Severe pain",
+        "Post-surgery pain",
+        "Chronic pain"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Dizziness",
+        "Constipation",
+        "Drowsiness"
+      ],
+      "dosage": "1 tablet every 4-6 hours as needed",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m04"
+      ]
+    },
+    {
+      "_id": "m06",
+      "name": "Amoxicillin 500mg",
+      "genericName": "Amoxicillin Trihydrate",
+      "category": "Antibiotic",
+      "manufacturer": "Cipla",
+      "description": "Broad-spectrum antibiotic for bacterial infections.",
+      "uses": [
+        "Bacterial infections",
+        "Ear infections",
+        "Throat infections",
+        "Pneumonia",
+        "UTI"
+      ],
+      "sideEffects": [
+        "Diarrhea",
+        "Nausea",
+        "Skin rash",
+        "Allergic reaction"
+      ],
+      "dosage": "1 capsule 3 times daily for 5-7 days",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m07",
+        "m08"
+      ]
+    },
+    {
+      "_id": "m07",
+      "name": "Azithromycin 500mg",
+      "genericName": "Azithromycin",
+      "category": "Antibiotic",
+      "manufacturer": "Pfizer",
+      "description": "Antibiotic for respiratory and skin infections.",
+      "uses": [
+        "Pneumonia",
+        "Bronchitis",
+        "Skin infections",
+        "STDs",
+        "Ear infections"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Diarrhea",
+        "Stomach pain",
+        "Heart rhythm changes"
+      ],
+      "dosage": "1 tablet daily for 3-5 days",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m06",
+        "m08"
+      ]
+    },
+    {
+      "_id": "m08",
+      "name": "Ciprofloxacin 500mg",
+      "genericName": "Ciprofloxacin HCl",
+      "category": "Antibiotic",
+      "manufacturer": "Bayer",
+      "description": "Fluoroquinolone antibiotic for urinary and respiratory infections.",
+      "uses": [
+        "UTI",
+        "Respiratory infections",
+        "Skin infections",
+        "Typhoid",
+        "Diarrhea"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Diarrhea",
+        "Headache",
+        "Tendon damage (rare)"
+      ],
+      "dosage": "1 tablet twice daily for 7-14 days",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m06",
+        "m07"
+      ]
+    },
+    {
+      "_id": "m09",
+      "name": "Metronidazole 400mg",
+      "genericName": "Metronidazole",
+      "category": "Antibiotic",
+      "manufacturer": "Abbott",
+      "description": "Antibiotic and antiprotozoal for infections.",
+      "uses": [
+        "Bacterial vaginosis",
+        "Dental infections",
+        "Stomach infections",
+        "Parasites"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Metallic taste",
+        "Headache",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet 3 times daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m06"
+      ]
+    },
+    {
+      "_id": "m10",
+      "name": "Doxycycline 100mg",
+      "genericName": "Doxycycline Hyclate",
+      "category": "Antibiotic",
+      "manufacturer": "Sun Pharma",
+      "description": "Tetracycline antibiotic for various infections.",
+      "uses": [
+        "Malaria prevention",
+        "Acne",
+        "Chest infections",
+        "Lyme disease"
+      ],
+      "sideEffects": [
+        "Sun sensitivity",
+        "Nausea",
+        "Diarrhea",
+        "Esophagus irritation"
+      ],
+      "dosage": "1 capsule daily or twice daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m07"
+      ]
+    },
+    {
+      "_id": "m11",
+      "name": "Metformin 500mg",
+      "genericName": "Metformin HCl",
+      "category": "Antidiabetic",
+      "manufacturer": "Sun Pharma",
+      "description": "First-line medication for Type 2 diabetes.",
+      "uses": [
+        "Type 2 diabetes",
+        "Blood sugar control",
+        "PCOS"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Diarrhea",
+        "Stomach upset",
+        "B12 deficiency (long term)"
+      ],
+      "dosage": "1 tablet twice daily with meals",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m12",
+        "m13"
+      ]
+    },
+    {
+      "_id": "m12",
+      "name": "Glimepiride 2mg",
+      "genericName": "Glimepiride",
+      "category": "Antidiabetic",
+      "manufacturer": "Sanofi",
+      "description": "Sulfonylurea to stimulate insulin release.",
+      "uses": [
+        "Type 2 diabetes",
+        "Blood sugar lowering"
+      ],
+      "sideEffects": [
+        "Low blood sugar",
+        "Weight gain",
+        "Nausea",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet daily before breakfast",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m11",
+        "m13"
+      ]
+    },
+    {
+      "_id": "m13",
+      "name": "Januvia 100mg",
+      "genericName": "Sitagliptin",
+      "category": "Antidiabetic",
+      "manufacturer": "MSD",
+      "description": "DPP-4 inhibitor for blood sugar control.",
+      "uses": [
+        "Type 2 diabetes",
+        "Blood sugar control"
+      ],
+      "sideEffects": [
+        "Runny nose",
+        "Sore throat",
+        "Headache",
+        "Pancreatitis (rare)"
+      ],
+      "dosage": "1 tablet daily with or without food",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m11",
+        "m12"
+      ]
+    },
+    {
+      "_id": "m14",
+      "name": "Amlodipine 5mg",
+      "genericName": "Amlodipine Besylate",
+      "category": "Antihypertensive",
+      "manufacturer": "Pfizer",
+      "description": "Calcium channel blocker for blood pressure and angina.",
+      "uses": [
+        "High blood pressure",
+        "Angina",
+        "Coronary artery disease"
+      ],
+      "sideEffects": [
+        "Ankle swelling",
+        "Flushing",
+        "Dizziness",
+        "Palpitations"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m15",
+        "m16"
+      ]
+    },
+    {
+      "_id": "m15",
+      "name": "Atenolol 50mg",
+      "genericName": "Atenolol",
+      "category": "Antihypertensive",
+      "manufacturer": "AstraZeneca",
+      "description": "Beta-blocker for blood pressure and heart conditions.",
+      "uses": [
+        "High blood pressure",
+        "Angina",
+        "Heart attack prevention",
+        "Arrhythmia"
+      ],
+      "sideEffects": [
+        "Fatigue",
+        "Cold hands/feet",
+        "Slow heartbeat",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m14",
+        "m16"
+      ]
+    },
+    {
+      "_id": "m16",
+      "name": "Losartan 50mg",
+      "genericName": "Losartan Potassium",
+      "category": "Antihypertensive",
+      "manufacturer": "Merck",
+      "description": "ARB for blood pressure and kidney protection.",
+      "uses": [
+        "High blood pressure",
+        "Kidney protection in diabetes",
+        "Heart failure"
+      ],
+      "sideEffects": [
+        "Dizziness",
+        "High potassium",
+        "Kidney problems",
+        "Cough (rare)"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m14",
+        "m15"
+      ]
+    },
+    {
+      "_id": "m17",
+      "name": "Telmisartan 40mg",
+      "genericName": "Telmisartan",
+      "category": "Antihypertensive",
+      "manufacturer": "Boehringer",
+      "description": "Long-acting ARB for hypertension.",
+      "uses": [
+        "High blood pressure",
+        "Cardiovascular risk reduction"
+      ],
+      "sideEffects": [
+        "Dizziness",
+        "Back pain",
+        "Diarrhea",
+        "Sinusitis"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m16"
+      ]
+    },
+    {
+      "_id": "m18",
+      "name": "Omeprazole 20mg",
+      "genericName": "Omeprazole",
+      "category": "Antacid",
+      "manufacturer": "AstraZeneca",
+      "description": "PPI for acid reflux and stomach ulcers.",
+      "uses": [
+        "Acid reflux",
+        "GERD",
+        "Stomach ulcers",
+        "H. pylori infection"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Diarrhea",
+        "Nausea",
+        "B12 deficiency (long term)"
+      ],
+      "dosage": "1 capsule daily before breakfast",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m19",
+        "m20"
+      ]
+    },
+    {
+      "_id": "m19",
+      "name": "Pantoprazole 40mg",
+      "genericName": "Pantoprazole Sodium",
+      "category": "Antacid",
+      "manufacturer": "Sun Pharma",
+      "description": "PPI for acid-related conditions.",
+      "uses": [
+        "GERD",
+        "Stomach ulcers",
+        "Zollinger-Ellison syndrome"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Diarrhea",
+        "Stomach pain",
+        "Nausea"
+      ],
+      "dosage": "1 tablet daily before meals",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m18",
+        "m20"
+      ]
+    },
+    {
+      "_id": "m20",
+      "name": "Ranitidine 150mg",
+      "genericName": "Ranitidine HCl",
+      "category": "Antacid",
+      "manufacturer": "GSK",
+      "description": "H2 blocker for heartburn and ulcers.",
+      "uses": [
+        "Heartburn",
+        "Acid indigestion",
+        "Stomach ulcers",
+        "GERD"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Constipation",
+        "Diarrhea",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet twice daily",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m18",
+        "m19"
+      ]
+    },
+    {
+      "_id": "m21",
+      "name": "Domperidone 10mg",
+      "genericName": "Domperidone",
+      "category": "Antiemetic",
+      "manufacturer": "Janssen",
+      "description": "Anti-nausea medicine that speeds up digestion.",
+      "uses": [
+        "Nausea",
+        "Vomiting",
+        "Bloating",
+        "Slow digestion"
+      ],
+      "sideEffects": [
+        "Dry mouth",
+        "Headache",
+        "Diarrhea",
+        "Heart rhythm (rare)"
+      ],
+      "dosage": "1 tablet 3 times daily before meals",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m22",
+      "name": "Ondansetron 4mg",
+      "genericName": "Ondansetron HCl",
+      "category": "Antiemetic",
+      "manufacturer": "GSK",
+      "description": "Powerful anti-nausea for chemotherapy and surgery.",
+      "uses": [
+        "Chemotherapy nausea",
+        "Post-surgery nausea",
+        "Severe vomiting"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Constipation",
+        "Fatigue",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet 3 times daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m21"
+      ]
+    },
+    {
+      "_id": "m23",
+      "name": "Cetirizine 10mg",
+      "genericName": "Cetirizine HCl",
+      "category": "Antihistamine",
+      "manufacturer": "UCB",
+      "description": "Non-drowsy antihistamine for allergies.",
+      "uses": [
+        "Hay fever",
+        "Allergic rhinitis",
+        "Hives",
+        "Itching",
+        "Watery eyes"
+      ],
+      "sideEffects": [
+        "Mild drowsiness",
+        "Dry mouth",
+        "Headache",
+        "Nausea"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m24",
+        "m25"
+      ]
+    },
+    {
+      "_id": "m24",
+      "name": "Loratadine 10mg",
+      "genericName": "Loratadine",
+      "category": "Antihistamine",
+      "manufacturer": "Schering",
+      "description": "Non-sedating antihistamine for allergy symptoms.",
+      "uses": [
+        "Hay fever",
+        "Hives",
+        "Allergic reactions",
+        "Runny nose"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Dry mouth",
+        "Fatigue",
+        "Stomach upset"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m23",
+        "m25"
+      ]
+    },
+    {
+      "_id": "m25",
+      "name": "Fexofenadine 120mg",
+      "genericName": "Fexofenadine HCl",
+      "category": "Antihistamine",
+      "manufacturer": "Sanofi",
+      "description": "Non-drowsy antihistamine.",
+      "uses": [
+        "Seasonal allergies",
+        "Hives",
+        "Itchy skin"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Nausea",
+        "Dizziness",
+        "Back pain"
+      ],
+      "dosage": "1 tablet twice daily",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m23",
+        "m24"
+      ]
+    },
+    {
+      "_id": "m26",
+      "name": "Atorvastatin 10mg",
+      "genericName": "Atorvastatin Calcium",
+      "category": "Antihyperlipidemic",
+      "manufacturer": "Pfizer",
+      "description": "Statin for lowering bad cholesterol.",
+      "uses": [
+        "High cholesterol",
+        "Heart disease prevention",
+        "Stroke prevention"
+      ],
+      "sideEffects": [
+        "Muscle pain",
+        "Liver problems",
+        "Headache",
+        "Stomach upset"
+      ],
+      "dosage": "1 tablet daily at night",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m27",
+        "m28"
+      ]
+    },
+    {
+      "_id": "m27",
+      "name": "Rosuvastatin 10mg",
+      "genericName": "Rosuvastatin Calcium",
+      "category": "Antihyperlipidemic",
+      "manufacturer": "AstraZeneca",
+      "description": "Potent statin for cholesterol management.",
+      "uses": [
+        "High cholesterol",
+        "High triglycerides",
+        "Heart disease prevention"
+      ],
+      "sideEffects": [
+        "Muscle pain",
+        "Headache",
+        "Nausea",
+        "Weakness"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m26",
+        "m28"
+      ]
+    },
+    {
+      "_id": "m28",
+      "name": "Simvastatin 20mg",
+      "genericName": "Simvastatin",
+      "category": "Antihyperlipidemic",
+      "manufacturer": "Merck",
+      "description": "Statin to lower cholesterol levels.",
+      "uses": [
+        "High cholesterol",
+        "Heart attack prevention"
+      ],
+      "sideEffects": [
+        "Muscle pain",
+        "Liver damage",
+        "Memory problems"
+      ],
+      "dosage": "1 tablet daily at bedtime",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m26",
+        "m27"
+      ]
+    },
+    {
+      "_id": "m29",
+      "name": "Levothyroxine 50mcg",
+      "genericName": "Levothyroxine Sodium",
+      "category": "Thyroid",
+      "manufacturer": "Abbott",
+      "description": "Synthetic thyroid hormone for hypothyroidism.",
+      "uses": [
+        "Hypothyroidism",
+        "Goiter",
+        "Thyroid cancer"
+      ],
+      "sideEffects": [
+        "Palpitations",
+        "Weight loss",
+        "Insomnia",
+        "Anxiety (overdose)"
+      ],
+      "dosage": "1 tablet daily on empty stomach",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m30",
+      "name": "Vitamin D3 60000 IU",
+      "genericName": "Cholecalciferol",
+      "category": "Vitamin",
+      "manufacturer": "Sun Pharma",
+      "description": "Vitamin D supplement for bone health.",
+      "uses": [
+        "Vitamin D deficiency",
+        "Bone health",
+        "Immune support",
+        "Muscle weakness"
+      ],
+      "sideEffects": [
+        "Nausea (overdose)",
+        "Weakness",
+        "Frequent urination"
+      ],
+      "dosage": "1 capsule weekly or as prescribed",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m31",
+      "name": "Vitamin B12 500mcg",
+      "genericName": "Cyanocobalamin",
+      "category": "Vitamin",
+      "manufacturer": "Cipla",
+      "description": "B12 supplement for nerve and blood health.",
+      "uses": [
+        "B12 deficiency",
+        "Nerve health",
+        "Anemia",
+        "Fatigue"
+      ],
+      "sideEffects": [
+        "Very rare at normal doses"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m32",
+      "name": "Calcium + D3",
+      "genericName": "Calcium Carbonate + Vitamin D3",
+      "category": "Supplement",
+      "manufacturer": "GSK",
+      "description": "Combined calcium and vitamin D supplement.",
+      "uses": [
+        "Calcium deficiency",
+        "Osteoporosis",
+        "Bone health"
+      ],
+      "sideEffects": [
+        "Constipation",
+        "Gas",
+        "Bloating",
+        "Kidney stones (overdose)"
+      ],
+      "dosage": "1-2 tablets daily with meals",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m33",
+      "name": "Iron Folic Acid",
+      "genericName": "Ferrous Sulfate + Folic Acid",
+      "category": "Supplement",
+      "manufacturer": "Sun Pharma",
+      "description": "Iron and folate supplement for anemia.",
+      "uses": [
+        "Iron deficiency anemia",
+        "Pregnancy",
+        "Fatigue"
+      ],
+      "sideEffects": [
+        "Constipation",
+        "Black stools",
+        "Nausea",
+        "Stomach cramps"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m34",
+      "name": "Salbutamol 100mcg Inhaler",
+      "genericName": "Albuterol",
+      "category": "Bronchodilator",
+      "manufacturer": "GSK",
+      "description": "Fast-acting inhaler for asthma attacks.",
+      "uses": [
+        "Asthma",
+        "COPD",
+        "Bronchospasm",
+        "Wheezing"
+      ],
+      "sideEffects": [
+        "Tremor",
+        "Palpitations",
+        "Headache",
+        "Muscle cramps"
+      ],
+      "dosage": "1-2 puffs every 4-6 hours as needed",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m35",
+      "name": "Montelukast 10mg",
+      "genericName": "Montelukast Sodium",
+      "category": "Respiratory",
+      "manufacturer": "MSD",
+      "description": "Leukotriene blocker for asthma and allergies.",
+      "uses": [
+        "Asthma prevention",
+        "Seasonal allergies",
+        "Exercise-induced asthma"
+      ],
+      "sideEffects": [
+        "Headache",
+        "Stomach pain",
+        "Mood changes",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet daily in the evening",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m36",
+      "name": "Ambroxol 30mg",
+      "genericName": "Ambroxol HCl",
+      "category": "Expectorant",
+      "manufacturer": "Boehringer",
+      "description": "Mucolytic to clear chest congestion.",
+      "uses": [
+        "Chest congestion",
+        "Productive cough",
+        "Bronchitis",
+        "COPD"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Stomach upset",
+        "Diarrhea"
+      ],
+      "dosage": "1 tablet 3 times daily",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m37",
+      "name": "Clotrimazole 1% Cream",
+      "genericName": "Clotrimazole",
+      "category": "Antifungal",
+      "manufacturer": "Bayer",
+      "description": "Antifungal cream for skin infections.",
+      "uses": [
+        "Ringworm",
+        "Athletes foot",
+        "Jock itch",
+        "Candidiasis"
+      ],
+      "sideEffects": [
+        "Skin irritation",
+        "Burning",
+        "Redness"
+      ],
+      "dosage": "Apply twice daily for 2-4 weeks",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m38",
+      "name": "Betamethasone Cream",
+      "genericName": "Betamethasone Valerate",
+      "category": "Corticosteroid",
+      "manufacturer": "GSK",
+      "description": "Steroid cream for skin inflammation.",
+      "uses": [
+        "Eczema",
+        "Psoriasis",
+        "Allergic rash",
+        "Dermatitis"
+      ],
+      "sideEffects": [
+        "Skin thinning",
+        "Stretch marks",
+        "Acne",
+        "Skin discoloration"
+      ],
+      "dosage": "Apply thin layer twice daily",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m39",
+      "name": "Alprazolam 0.25mg",
+      "genericName": "Alprazolam",
+      "category": "Anxiolytic",
+      "manufacturer": "Pfizer",
+      "description": "Benzodiazepine for anxiety and panic disorders.",
+      "uses": [
+        "Anxiety",
+        "Panic disorder",
+        "Insomnia"
+      ],
+      "sideEffects": [
+        "Drowsiness",
+        "Dizziness",
+        "Dependency",
+        "Memory problems"
+      ],
+      "dosage": "1 tablet 3 times daily as prescribed",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m40",
+      "name": "Escitalopram 10mg",
+      "genericName": "Escitalopram Oxalate",
+      "category": "Antidepressant",
+      "manufacturer": "Lundbeck",
+      "description": "SSRI antidepressant for depression and anxiety.",
+      "uses": [
+        "Depression",
+        "Anxiety disorder",
+        "OCD",
+        "Panic disorder"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Insomnia",
+        "Dry mouth",
+        "Sexual dysfunction"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m41",
+      "name": "Insulin Glargine 100U",
+      "genericName": "Insulin Glargine",
+      "category": "Insulin",
+      "manufacturer": "Sanofi",
+      "description": "Long-acting insulin for Type 1 and 2 diabetes.",
+      "uses": [
+        "Type 1 diabetes",
+        "Type 2 diabetes",
+        "Blood sugar control"
+      ],
+      "sideEffects": [
+        "Low blood sugar",
+        "Weight gain",
+        "Injection site reactions"
+      ],
+      "dosage": "As prescribed by doctor - inject subcutaneously",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m42",
+      "name": "Chloroquine 250mg",
+      "genericName": "Chloroquine Phosphate",
+      "category": "Antimalarial",
+      "manufacturer": "Cipla",
+      "description": "Treatment and prevention of malaria.",
+      "uses": [
+        "Malaria treatment",
+        "Malaria prevention",
+        "Rheumatoid arthritis"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Stomach cramps",
+        "Vision changes",
+        "Headache"
+      ],
+      "dosage": "As prescribed based on weight and indication",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m43",
+      "name": "Volini Gel",
+      "genericName": "Diclofenac + Methyl Salicylate",
+      "category": "Topical Analgesic",
+      "manufacturer": "Sun Pharma",
+      "description": "Topical pain relief gel for muscles and joints.",
+      "uses": [
+        "Muscle pain",
+        "Joint pain",
+        "Sprains",
+        "Back pain",
+        "Sports injuries"
+      ],
+      "sideEffects": [
+        "Skin irritation",
+        "Redness",
+        "Burning sensation"
+      ],
+      "dosage": "Apply 3-4 times daily on affected area",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m44",
+      "name": "Ciprofloxacin Eye Drops",
+      "genericName": "Ciprofloxacin 0.3%",
+      "category": "Eye Drops",
+      "manufacturer": "Alcon",
+      "description": "Antibiotic eye drops for eye infections.",
+      "uses": [
+        "Conjunctivitis",
+        "Eye infections",
+        "Corneal ulcers"
+      ],
+      "sideEffects": [
+        "Eye irritation",
+        "Burning",
+        "Blurred vision (temporary)"
+      ],
+      "dosage": "1-2 drops every 4-6 hours",
+      "requiresPrescription": true,
+      "alternatives": []
+    },
+    {
+      "_id": "m45",
+      "name": "Sinarest Tablet",
+      "genericName": "Paracetamol + Phenylephrine + Chlorpheniramine",
+      "category": "Cold & Flu",
+      "manufacturer": "Centaur",
+      "description": "Combination medicine for cold and flu symptoms.",
+      "uses": [
+        "Common cold",
+        "Flu",
+        "Blocked nose",
+        "Runny nose",
+        "Headache"
+      ],
+      "sideEffects": [
+        "Drowsiness",
+        "Dry mouth",
+        "Nausea",
+        "Dizziness"
+      ],
+      "dosage": "1 tablet 3-4 times daily",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m46",
+      "name": "Crocin 650mg",
+      "genericName": "Paracetamol 650mg",
+      "category": "Analgesic",
+      "manufacturer": "GSK",
+      "description": "Higher dose paracetamol for stronger fever/pain.",
+      "uses": [
+        "High fever",
+        "Moderate pain",
+        "Post-vaccination fever"
+      ],
+      "sideEffects": [
+        "Liver damage (overdose)",
+        "Nausea",
+        "Rash"
+      ],
+      "dosage": "1 tablet every 6-8 hours",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m01"
+      ]
+    },
+    {
+      "_id": "m47",
+      "name": "Drotin 80mg",
+      "genericName": "Drotaverine HCl",
+      "category": "Antispasmodic",
+      "manufacturer": "IPCA",
+      "description": "Antispasmodic for stomach cramps and pain.",
+      "uses": [
+        "Stomach cramps",
+        "Menstrual cramps",
+        "Urinary spasms",
+        "IBS"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Dizziness",
+        "Dry mouth",
+        "Headache"
+      ],
+      "dosage": "1-2 tablets 3 times daily",
+      "requiresPrescription": false,
+      "alternatives": []
+    },
+    {
+      "_id": "m48",
+      "name": "Digene Syrup",
+      "genericName": "Magnesium Hydroxide + Simethicone",
+      "category": "Antacid",
+      "manufacturer": "Abbott",
+      "description": "Antacid for immediate heartburn relief.",
+      "uses": [
+        "Heartburn",
+        "Acidity",
+        "Gas",
+        "Indigestion",
+        "Bloating"
+      ],
+      "sideEffects": [
+        "Diarrhea",
+        "Constipation"
+      ],
+      "dosage": "2 teaspoons after meals",
+      "requiresPrescription": false,
+      "alternatives": [
+        "m18",
+        "m19"
+      ]
+    },
+    {
+      "_id": "m49",
+      "name": "Clopidogrel 75mg",
+      "genericName": "Clopidogrel Bisulfate",
+      "category": "Antiplatelet",
+      "manufacturer": "Sanofi",
+      "description": "Blood thinner to prevent heart attacks and strokes.",
+      "uses": [
+        "Heart attack prevention",
+        "Stroke prevention",
+        "Coronary stents"
+      ],
+      "sideEffects": [
+        "Bleeding",
+        "Bruising",
+        "Stomach pain",
+        "Headache"
+      ],
+      "dosage": "1 tablet daily",
+      "requiresPrescription": true,
+      "alternatives": [
+        "m03"
+      ]
+    },
+    {
+      "_id": "m50",
+      "name": "Fluconazole 150mg",
+      "genericName": "Fluconazole",
+      "category": "Antifungal",
+      "manufacturer": "Pfizer",
+      "description": "Oral antifungal for systemic fungal infections.",
+      "uses": [
+        "Vaginal yeast infection",
+        "Oral thrush",
+        "Systemic fungal infections"
+      ],
+      "sideEffects": [
+        "Nausea",
+        "Headache",
+        "Stomach pain",
+        "Liver problems (rare)"
+      ],
+      "dosage": "1 tablet as single dose or as prescribed",
+      "requiresPrescription": true,
+      "alternatives": []
+    }
+  ],
+  "stores": [
+    {
+      "_id": "str1",
+      "name": "MedPlus Pharmacy",
+      "owner": "store1",
+      "address": "123 MG Road, Hyderabad - 500001",
+      "phone": "040-12345678",
+      "email": "medplus@example.com",
+      "openingHours": "8:00 AM - 10:00 PM",
+      "isOpen": true,
+      "rating": 4.5,
+      "location": {
+        "lat": 17.385,
+        "lng": 78.4867
+      }
+    },
+    {
+      "_id": "str2",
+      "name": "Apollo Pharmacy",
+      "owner": "store2",
+      "address": "456 Jubilee Hills, Hyderabad - 500033",
+      "phone": "040-87654321",
+      "email": "apollo@example.com",
+      "openingHours": "24 Hours Open",
+      "isOpen": true,
+      "rating": 4.8,
+      "location": {
+        "lat": 17.432,
+        "lng": 78.408
+      }
+    },
+    {
+      "_id": "str3",
+      "name": "City Medical Store",
+      "owner": "store1",
+      "address": "789 Banjara Hills, Hyderabad - 500034",
+      "phone": "040-11223344",
+      "email": "citymed@example.com",
+      "openingHours": "9:00 AM - 9:00 PM",
+      "isOpen": false,
+      "rating": 4.2,
+      "location": {
+        "lat": 17.415,
+        "lng": 78.448
+      }
+    },
+    {
+      "_id": "str4",
+      "name": "Netmeds Pharmacy",
+      "owner": "store2",
+      "address": "321 Gachibowli, Hyderabad - 500032",
+      "phone": "040-55667788",
+      "email": "netmeds@example.com",
+      "openingHours": "8:00 AM - 11:00 PM",
+      "isOpen": true,
+      "rating": 4.6,
+      "location": {
+        "lat": 17.445,
+        "lng": 78.348
+      }
+    }
+  ],
+  "inventory": [
+    {
+      "_id": "inv1",
+      "store": "str1",
+      "medicine": "m02",
+      "price": 41,
+      "stock": 80,
+      "discount": 10,
+      "expiryDate": "2027-02-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv2",
+      "store": "str1",
+      "medicine": "m03",
+      "price": 26,
+      "stock": 68,
+      "discount": 5,
+      "expiryDate": "2028-10-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv3",
+      "store": "str1",
+      "medicine": "m04",
+      "price": 97,
+      "stock": 186,
+      "discount": 10,
+      "expiryDate": "2027-03-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv4",
+      "store": "str1",
+      "medicine": "m05",
+      "price": 135,
+      "stock": 44,
+      "discount": 5,
+      "expiryDate": "2026-08-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv5",
+      "store": "str1",
+      "medicine": "m06",
+      "price": 93,
+      "stock": 64,
+      "discount": 5,
+      "expiryDate": "2026-02-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv6",
+      "store": "str1",
+      "medicine": "m07",
+      "price": 138,
+      "stock": 66,
+      "discount": 0,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv7",
+      "store": "str1",
+      "medicine": "m08",
+      "price": 119,
+      "stock": 67,
+      "discount": 0,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv8",
+      "store": "str1",
+      "medicine": "m09",
+      "price": 72,
+      "stock": 59,
+      "discount": 10,
+      "expiryDate": "2027-05-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv9",
+      "store": "str1",
+      "medicine": "m10",
+      "price": 120,
+      "stock": 164,
+      "discount": 0,
+      "expiryDate": "2027-09-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv10",
+      "store": "str1",
+      "medicine": "m11",
+      "price": 56,
+      "stock": 168,
+      "discount": 0,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv11",
+      "store": "str1",
+      "medicine": "m12",
+      "price": 86,
+      "stock": 116,
+      "discount": 20,
+      "expiryDate": "2028-02-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv12",
+      "store": "str1",
+      "medicine": "m14",
+      "price": 65,
+      "stock": 94,
+      "discount": 0,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.560Z"
+    },
+    {
+      "_id": "inv13",
+      "store": "str1",
+      "medicine": "m15",
+      "price": 64,
+      "stock": 106,
+      "discount": 5,
+      "expiryDate": "2028-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv14",
+      "store": "str1",
+      "medicine": "m16",
+      "price": 91,
+      "stock": 166,
+      "discount": 0,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv15",
+      "store": "str1",
+      "medicine": "m17",
+      "price": 83,
+      "stock": 100,
+      "discount": 15,
+      "expiryDate": "2027-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv16",
+      "store": "str1",
+      "medicine": "m18",
+      "price": 56,
+      "stock": 148,
+      "discount": 0,
+      "expiryDate": "2026-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv17",
+      "store": "str1",
+      "medicine": "m19",
+      "price": 58,
+      "stock": 58,
+      "discount": 5,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv18",
+      "store": "str1",
+      "medicine": "m20",
+      "price": 36,
+      "stock": 110,
+      "discount": 0,
+      "expiryDate": "2028-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv19",
+      "store": "str1",
+      "medicine": "m21",
+      "price": 31,
+      "stock": 165,
+      "discount": 0,
+      "expiryDate": "2028-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv20",
+      "store": "str1",
+      "medicine": "m22",
+      "price": 188,
+      "stock": 159,
+      "discount": 0,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv21",
+      "store": "str1",
+      "medicine": "m23",
+      "price": 46,
+      "stock": 118,
+      "discount": 0,
+      "expiryDate": "2027-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv22",
+      "store": "str1",
+      "medicine": "m25",
+      "price": 120,
+      "stock": 30,
+      "discount": 5,
+      "expiryDate": "2028-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv23",
+      "store": "str1",
+      "medicine": "m26",
+      "price": 91,
+      "stock": 98,
+      "discount": 20,
+      "expiryDate": "2026-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv24",
+      "store": "str1",
+      "medicine": "m27",
+      "price": 133,
+      "stock": 139,
+      "discount": 15,
+      "expiryDate": "2028-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv25",
+      "store": "str1",
+      "medicine": "m28",
+      "price": 91,
+      "stock": 65,
+      "discount": 0,
+      "expiryDate": "2026-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv26",
+      "store": "str1",
+      "medicine": "m29",
+      "price": 84,
+      "stock": 104,
+      "discount": 0,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv27",
+      "store": "str1",
+      "medicine": "m30",
+      "price": 159,
+      "stock": 144,
+      "discount": 0,
+      "expiryDate": "2027-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv28",
+      "store": "str1",
+      "medicine": "m31",
+      "price": 65,
+      "stock": 116,
+      "discount": 15,
+      "expiryDate": "2028-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv29",
+      "store": "str1",
+      "medicine": "m32",
+      "price": 171,
+      "stock": 153,
+      "discount": 10,
+      "expiryDate": "2026-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv30",
+      "store": "str1",
+      "medicine": "m33",
+      "price": 39,
+      "stock": 35,
+      "discount": 5,
+      "expiryDate": "2026-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv31",
+      "store": "str1",
+      "medicine": "m34",
+      "price": 251,
+      "stock": 65,
+      "discount": 20,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv32",
+      "store": "str1",
+      "medicine": "m35",
+      "price": 147,
+      "stock": 178,
+      "discount": 20,
+      "expiryDate": "2027-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv33",
+      "store": "str1",
+      "medicine": "m36",
+      "price": 52,
+      "stock": 66,
+      "discount": 20,
+      "expiryDate": "2027-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv34",
+      "store": "str1",
+      "medicine": "m37",
+      "price": 96,
+      "stock": 156,
+      "discount": 10,
+      "expiryDate": "2027-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv35",
+      "store": "str1",
+      "medicine": "m40",
+      "price": 145,
+      "stock": 204,
+      "discount": 0,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv36",
+      "store": "str1",
+      "medicine": "m42",
+      "price": 67,
+      "stock": 55,
+      "discount": 0,
+      "expiryDate": "2026-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv37",
+      "store": "str1",
+      "medicine": "m44",
+      "price": 78,
+      "stock": 71,
+      "discount": 20,
+      "expiryDate": "2027-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv38",
+      "store": "str1",
+      "medicine": "m45",
+      "price": 40,
+      "stock": 15,
+      "discount": 0,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv39",
+      "store": "str1",
+      "medicine": "m46",
+      "price": 39,
+      "stock": 147,
+      "discount": 5,
+      "expiryDate": "2028-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv40",
+      "store": "str1",
+      "medicine": "m47",
+      "price": 62,
+      "stock": 104,
+      "discount": 0,
+      "expiryDate": "2027-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv41",
+      "store": "str1",
+      "medicine": "m48",
+      "price": 80,
+      "stock": 116,
+      "discount": 5,
+      "expiryDate": "2026-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv42",
+      "store": "str1",
+      "medicine": "m49",
+      "price": 93,
+      "stock": 175,
+      "discount": 5,
+      "expiryDate": "2028-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv43",
+      "store": "str1",
+      "medicine": "m50",
+      "price": 251,
+      "stock": 111,
+      "discount": 0,
+      "expiryDate": "2026-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv44",
+      "store": "str2",
+      "medicine": "m01",
+      "price": 22,
+      "stock": 182,
+      "discount": 20,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv45",
+      "store": "str2",
+      "medicine": "m04",
+      "price": 85,
+      "stock": 200,
+      "discount": 15,
+      "expiryDate": "2028-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv46",
+      "store": "str2",
+      "medicine": "m05",
+      "price": 132,
+      "stock": 188,
+      "discount": 10,
+      "expiryDate": "2027-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv47",
+      "store": "str2",
+      "medicine": "m06",
+      "price": 108,
+      "stock": 91,
+      "discount": 0,
+      "expiryDate": "2028-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv48",
+      "store": "str2",
+      "medicine": "m07",
+      "price": 167,
+      "stock": 137,
+      "discount": 0,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv49",
+      "store": "str2",
+      "medicine": "m08",
+      "price": 122,
+      "stock": 160,
+      "discount": 5,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv50",
+      "store": "str2",
+      "medicine": "m09",
+      "price": 69,
+      "stock": 33,
+      "discount": 0,
+      "expiryDate": "2028-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv51",
+      "store": "str2",
+      "medicine": "m10",
+      "price": 122,
+      "stock": 96,
+      "discount": 0,
+      "expiryDate": "2028-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv52",
+      "store": "str2",
+      "medicine": "m11",
+      "price": 58,
+      "stock": 146,
+      "discount": 5,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv53",
+      "store": "str2",
+      "medicine": "m12",
+      "price": 88,
+      "stock": 63,
+      "discount": 15,
+      "expiryDate": "2026-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv54",
+      "store": "str2",
+      "medicine": "m13",
+      "price": 277,
+      "stock": 94,
+      "discount": 5,
+      "expiryDate": "2028-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv55",
+      "store": "str2",
+      "medicine": "m14",
+      "price": 77,
+      "stock": 62,
+      "discount": 10,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv56",
+      "store": "str2",
+      "medicine": "m15",
+      "price": 68,
+      "stock": 43,
+      "discount": 5,
+      "expiryDate": "2027-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv57",
+      "store": "str2",
+      "medicine": "m16",
+      "price": 90,
+      "stock": 179,
+      "discount": 0,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv58",
+      "store": "str2",
+      "medicine": "m17",
+      "price": 82,
+      "stock": 144,
+      "discount": 0,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv59",
+      "store": "str2",
+      "medicine": "m19",
+      "price": 59,
+      "stock": 149,
+      "discount": 0,
+      "expiryDate": "2028-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv60",
+      "store": "str2",
+      "medicine": "m20",
+      "price": 43,
+      "stock": 99,
+      "discount": 0,
+      "expiryDate": "2028-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv61",
+      "store": "str2",
+      "medicine": "m21",
+      "price": 36,
+      "stock": 172,
+      "discount": 0,
+      "expiryDate": "2026-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv62",
+      "store": "str2",
+      "medicine": "m22",
+      "price": 190,
+      "stock": 189,
+      "discount": 0,
+      "expiryDate": "2027-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv63",
+      "store": "str2",
+      "medicine": "m28",
+      "price": 92,
+      "stock": 168,
+      "discount": 15,
+      "expiryDate": "2027-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv64",
+      "store": "str2",
+      "medicine": "m29",
+      "price": 69,
+      "stock": 28,
+      "discount": 10,
+      "expiryDate": "2026-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv65",
+      "store": "str2",
+      "medicine": "m30",
+      "price": 153,
+      "stock": 192,
+      "discount": 5,
+      "expiryDate": "2026-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv66",
+      "store": "str2",
+      "medicine": "m31",
+      "price": 59,
+      "stock": 110,
+      "discount": 0,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv67",
+      "store": "str2",
+      "medicine": "m32",
+      "price": 204,
+      "stock": 32,
+      "discount": 5,
+      "expiryDate": "2026-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv68",
+      "store": "str2",
+      "medicine": "m36",
+      "price": 48,
+      "stock": 169,
+      "discount": 15,
+      "expiryDate": "2026-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv69",
+      "store": "str2",
+      "medicine": "m37",
+      "price": 81,
+      "stock": 34,
+      "discount": 0,
+      "expiryDate": "2028-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv70",
+      "store": "str2",
+      "medicine": "m38",
+      "price": 115,
+      "stock": 26,
+      "discount": 10,
+      "expiryDate": "2026-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv71",
+      "store": "str2",
+      "medicine": "m40",
+      "price": 159,
+      "stock": 80,
+      "discount": 15,
+      "expiryDate": "2026-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv72",
+      "store": "str2",
+      "medicine": "m41",
+      "price": 822,
+      "stock": 137,
+      "discount": 15,
+      "expiryDate": "2028-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv73",
+      "store": "str2",
+      "medicine": "m42",
+      "price": 66,
+      "stock": 37,
+      "discount": 0,
+      "expiryDate": "2027-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv74",
+      "store": "str2",
+      "medicine": "m43",
+      "price": 88,
+      "stock": 140,
+      "discount": 5,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv75",
+      "store": "str2",
+      "medicine": "m44",
+      "price": 80,
+      "stock": 155,
+      "discount": 0,
+      "expiryDate": "2027-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv76",
+      "store": "str2",
+      "medicine": "m45",
+      "price": 47,
+      "stock": 114,
+      "discount": 0,
+      "expiryDate": "2028-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv77",
+      "store": "str2",
+      "medicine": "m46",
+      "price": 39,
+      "stock": 104,
+      "discount": 0,
+      "expiryDate": "2028-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv78",
+      "store": "str2",
+      "medicine": "m48",
+      "price": 71,
+      "stock": 21,
+      "discount": 0,
+      "expiryDate": "2026-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv79",
+      "store": "str2",
+      "medicine": "m49",
+      "price": 106,
+      "stock": 199,
+      "discount": 15,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv80",
+      "store": "str2",
+      "medicine": "m50",
+      "price": 278,
+      "stock": 203,
+      "discount": 20,
+      "expiryDate": "2027-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv81",
+      "store": "str3",
+      "medicine": "m01",
+      "price": 25,
+      "stock": 89,
+      "discount": 0,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv82",
+      "store": "str3",
+      "medicine": "m03",
+      "price": 29,
+      "stock": 123,
+      "discount": 0,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv83",
+      "store": "str3",
+      "medicine": "m04",
+      "price": 81,
+      "stock": 159,
+      "discount": 5,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv84",
+      "store": "str3",
+      "medicine": "m05",
+      "price": 118,
+      "stock": 155,
+      "discount": 5,
+      "expiryDate": "2026-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv85",
+      "store": "str3",
+      "medicine": "m07",
+      "price": 153,
+      "stock": 59,
+      "discount": 20,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv86",
+      "store": "str3",
+      "medicine": "m08",
+      "price": 135,
+      "stock": 129,
+      "discount": 5,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv87",
+      "store": "str3",
+      "medicine": "m09",
+      "price": 77,
+      "stock": 184,
+      "discount": 20,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv88",
+      "store": "str3",
+      "medicine": "m10",
+      "price": 118,
+      "stock": 160,
+      "discount": 5,
+      "expiryDate": "2028-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv89",
+      "store": "str3",
+      "medicine": "m11",
+      "price": 53,
+      "stock": 147,
+      "discount": 20,
+      "expiryDate": "2026-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv90",
+      "store": "str3",
+      "medicine": "m12",
+      "price": 85,
+      "stock": 182,
+      "discount": 5,
+      "expiryDate": "2027-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv91",
+      "store": "str3",
+      "medicine": "m13",
+      "price": 250,
+      "stock": 123,
+      "discount": 5,
+      "expiryDate": "2026-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv92",
+      "store": "str3",
+      "medicine": "m14",
+      "price": 84,
+      "stock": 142,
+      "discount": 5,
+      "expiryDate": "2028-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv93",
+      "store": "str3",
+      "medicine": "m15",
+      "price": 68,
+      "stock": 6,
+      "discount": 0,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv94",
+      "store": "str3",
+      "medicine": "m17",
+      "price": 102,
+      "stock": 121,
+      "discount": 0,
+      "expiryDate": "2028-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv95",
+      "store": "str3",
+      "medicine": "m18",
+      "price": 64,
+      "stock": 181,
+      "discount": 5,
+      "expiryDate": "2026-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv96",
+      "store": "str3",
+      "medicine": "m19",
+      "price": 56,
+      "stock": 112,
+      "discount": 20,
+      "expiryDate": "2026-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv97",
+      "store": "str3",
+      "medicine": "m20",
+      "price": 46,
+      "stock": 44,
+      "discount": 5,
+      "expiryDate": "2026-09-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv98",
+      "store": "str3",
+      "medicine": "m21",
+      "price": 32,
+      "stock": 128,
+      "discount": 0,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv99",
+      "store": "str3",
+      "medicine": "m22",
+      "price": 157,
+      "stock": 145,
+      "discount": 5,
+      "expiryDate": "2027-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv100",
+      "store": "str3",
+      "medicine": "m23",
+      "price": 35,
+      "stock": 127,
+      "discount": 20,
+      "expiryDate": "2027-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv101",
+      "store": "str3",
+      "medicine": "m26",
+      "price": 78,
+      "stock": 128,
+      "discount": 0,
+      "expiryDate": "2026-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv102",
+      "store": "str3",
+      "medicine": "m27",
+      "price": 152,
+      "stock": 173,
+      "discount": 15,
+      "expiryDate": "2026-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv103",
+      "store": "str3",
+      "medicine": "m28",
+      "price": 95,
+      "stock": 20,
+      "discount": 10,
+      "expiryDate": "2026-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv104",
+      "store": "str3",
+      "medicine": "m29",
+      "price": 81,
+      "stock": 38,
+      "discount": 5,
+      "expiryDate": "2028-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv105",
+      "store": "str3",
+      "medicine": "m31",
+      "price": 69,
+      "stock": 55,
+      "discount": 0,
+      "expiryDate": "2027-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv106",
+      "store": "str3",
+      "medicine": "m32",
+      "price": 185,
+      "stock": 69,
+      "discount": 15,
+      "expiryDate": "2027-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv107",
+      "store": "str3",
+      "medicine": "m35",
+      "price": 142,
+      "stock": 131,
+      "discount": 0,
+      "expiryDate": "2026-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv108",
+      "store": "str3",
+      "medicine": "m36",
+      "price": 51,
+      "stock": 142,
+      "discount": 0,
+      "expiryDate": "2028-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv109",
+      "store": "str3",
+      "medicine": "m38",
+      "price": 112,
+      "stock": 33,
+      "discount": 0,
+      "expiryDate": "2026-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv110",
+      "store": "str3",
+      "medicine": "m40",
+      "price": 180,
+      "stock": 82,
+      "discount": 15,
+      "expiryDate": "2026-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv111",
+      "store": "str3",
+      "medicine": "m41",
+      "price": 887,
+      "stock": 185,
+      "discount": 0,
+      "expiryDate": "2027-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv112",
+      "store": "str3",
+      "medicine": "m42",
+      "price": 73,
+      "stock": 144,
+      "discount": 10,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv113",
+      "store": "str3",
+      "medicine": "m43",
+      "price": 97,
+      "stock": 32,
+      "discount": 20,
+      "expiryDate": "2027-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv114",
+      "store": "str3",
+      "medicine": "m44",
+      "price": 68,
+      "stock": 193,
+      "discount": 0,
+      "expiryDate": "2026-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv115",
+      "store": "str3",
+      "medicine": "m47",
+      "price": 56,
+      "stock": 75,
+      "discount": 0,
+      "expiryDate": "2028-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv116",
+      "store": "str3",
+      "medicine": "m48",
+      "price": 72,
+      "stock": 24,
+      "discount": 10,
+      "expiryDate": "2026-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv117",
+      "store": "str3",
+      "medicine": "m50",
+      "price": 238,
+      "stock": 56,
+      "discount": 5,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv118",
+      "store": "str4",
+      "medicine": "m01",
+      "price": 24,
+      "stock": 172,
+      "discount": 0,
+      "expiryDate": "2026-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv119",
+      "store": "str4",
+      "medicine": "m02",
+      "price": 49,
+      "stock": 180,
+      "discount": 5,
+      "expiryDate": "2026-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv120",
+      "store": "str4",
+      "medicine": "m03",
+      "price": 34,
+      "stock": 35,
+      "discount": 20,
+      "expiryDate": "2026-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv121",
+      "store": "str4",
+      "medicine": "m04",
+      "price": 97,
+      "stock": 157,
+      "discount": 5,
+      "expiryDate": "2027-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv122",
+      "store": "str4",
+      "medicine": "m05",
+      "price": 109,
+      "stock": 149,
+      "discount": 0,
+      "expiryDate": "2027-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv123",
+      "store": "str4",
+      "medicine": "m07",
+      "price": 165,
+      "stock": 134,
+      "discount": 20,
+      "expiryDate": "2028-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv124",
+      "store": "str4",
+      "medicine": "m08",
+      "price": 133,
+      "stock": 64,
+      "discount": 15,
+      "expiryDate": "2026-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv125",
+      "store": "str4",
+      "medicine": "m09",
+      "price": 71,
+      "stock": 99,
+      "discount": 10,
+      "expiryDate": "2028-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv126",
+      "store": "str4",
+      "medicine": "m10",
+      "price": 94,
+      "stock": 5,
+      "discount": 15,
+      "expiryDate": "2028-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv127",
+      "store": "str4",
+      "medicine": "m11",
+      "price": 61,
+      "stock": 138,
+      "discount": 0,
+      "expiryDate": "2026-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv128",
+      "store": "str4",
+      "medicine": "m12",
+      "price": 80,
+      "stock": 44,
+      "discount": 0,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv129",
+      "store": "str4",
+      "medicine": "m13",
+      "price": 255,
+      "stock": 88,
+      "discount": 0,
+      "expiryDate": "2027-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv130",
+      "store": "str4",
+      "medicine": "m14",
+      "price": 75,
+      "stock": 111,
+      "discount": 0,
+      "expiryDate": "2027-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv131",
+      "store": "str4",
+      "medicine": "m15",
+      "price": 58,
+      "stock": 107,
+      "discount": 10,
+      "expiryDate": "2027-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv132",
+      "store": "str4",
+      "medicine": "m16",
+      "price": 93,
+      "stock": 116,
+      "discount": 0,
+      "expiryDate": "2026-06-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv133",
+      "store": "str4",
+      "medicine": "m17",
+      "price": 100,
+      "stock": 7,
+      "discount": 20,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv134",
+      "store": "str4",
+      "medicine": "m18",
+      "price": 54,
+      "stock": 75,
+      "discount": 5,
+      "expiryDate": "2028-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv135",
+      "store": "str4",
+      "medicine": "m20",
+      "price": 46,
+      "stock": 162,
+      "discount": 10,
+      "expiryDate": "2028-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv136",
+      "store": "str4",
+      "medicine": "m21",
+      "price": 34,
+      "stock": 136,
+      "discount": 0,
+      "expiryDate": "2027-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv137",
+      "store": "str4",
+      "medicine": "m23",
+      "price": 35,
+      "stock": 140,
+      "discount": 20,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv138",
+      "store": "str4",
+      "medicine": "m24",
+      "price": 49,
+      "stock": 70,
+      "discount": 10,
+      "expiryDate": "2027-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv139",
+      "store": "str4",
+      "medicine": "m25",
+      "price": 124,
+      "stock": 74,
+      "discount": 0,
+      "expiryDate": "2026-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv140",
+      "store": "str4",
+      "medicine": "m26",
+      "price": 84,
+      "stock": 188,
+      "discount": 15,
+      "expiryDate": "2028-05-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv141",
+      "store": "str4",
+      "medicine": "m28",
+      "price": 105,
+      "stock": 163,
+      "discount": 20,
+      "expiryDate": "2027-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv142",
+      "store": "str4",
+      "medicine": "m29",
+      "price": 77,
+      "stock": 186,
+      "discount": 15,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv143",
+      "store": "str4",
+      "medicine": "m31",
+      "price": 65,
+      "stock": 147,
+      "discount": 10,
+      "expiryDate": "2028-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv144",
+      "store": "str4",
+      "medicine": "m32",
+      "price": 188,
+      "stock": 169,
+      "discount": 0,
+      "expiryDate": "2026-08-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv145",
+      "store": "str4",
+      "medicine": "m33",
+      "price": 48,
+      "stock": 42,
+      "discount": 0,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv146",
+      "store": "str4",
+      "medicine": "m34",
+      "price": 260,
+      "stock": 167,
+      "discount": 20,
+      "expiryDate": "2028-07-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv147",
+      "store": "str4",
+      "medicine": "m35",
+      "price": 141,
+      "stock": 164,
+      "discount": 15,
+      "expiryDate": "2027-02-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv148",
+      "store": "str4",
+      "medicine": "m37",
+      "price": 83,
+      "stock": 68,
+      "discount": 20,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv149",
+      "store": "str4",
+      "medicine": "m38",
+      "price": 122,
+      "stock": 162,
+      "discount": 0,
+      "expiryDate": "2028-10-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv150",
+      "store": "str4",
+      "medicine": "m39",
+      "price": 32,
+      "stock": 95,
+      "discount": 15,
+      "expiryDate": "2027-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv151",
+      "store": "str4",
+      "medicine": "m40",
+      "price": 171,
+      "stock": 20,
+      "discount": 0,
+      "expiryDate": "2027-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv152",
+      "store": "str4",
+      "medicine": "m41",
+      "price": 838,
+      "stock": 156,
+      "discount": 0,
+      "expiryDate": "2026-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv153",
+      "store": "str4",
+      "medicine": "m42",
+      "price": 68,
+      "stock": 197,
+      "discount": 15,
+      "expiryDate": "2028-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv154",
+      "store": "str4",
+      "medicine": "m45",
+      "price": 40,
+      "stock": 18,
+      "discount": 15,
+      "expiryDate": "2028-03-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv155",
+      "store": "str4",
+      "medicine": "m46",
+      "price": 39,
+      "stock": 120,
+      "discount": 20,
+      "expiryDate": "2027-01-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv156",
+      "store": "str4",
+      "medicine": "m47",
+      "price": 55,
+      "stock": 30,
+      "discount": 20,
+      "expiryDate": "2026-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv157",
+      "store": "str4",
+      "medicine": "m48",
+      "price": 81,
+      "stock": 99,
+      "discount": 0,
+      "expiryDate": "2027-04-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv158",
+      "store": "str4",
+      "medicine": "m49",
+      "price": 96,
+      "stock": 140,
+      "discount": 0,
+      "expiryDate": "2028-11-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    },
+    {
+      "_id": "inv159",
+      "store": "str4",
+      "medicine": "m50",
+      "price": 306,
+      "stock": 176,
+      "discount": 15,
+      "expiryDate": "2026-12-28",
+      "updatedAt": "2026-03-01T20:05:30.561Z"
+    }
+  ],
+  "orders": [
+    {
+      "_id": "1772396138320",
+      "user": "user1",
+      "store": "str2",
+      "items": [
+        {
+          "medicine": "m04",
+          "quantity": 1,
+          "price": 85
+        }
+      ],
+      "totalAmount": 72.25,
+      "status": "pending",
+      "createdAt": "2026-03-01T20:15:38.320Z"
+    }
+  ],
+  "prescriptions": []
+}
