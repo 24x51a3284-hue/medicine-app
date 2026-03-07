@@ -175,37 +175,82 @@ function filterR(type, el) {
 }
 
 // ── MEDICINE DETAIL ────────────────────────────────────────────────────────
+function cleanFDA(s){ return s ? s.split('\n').join(' ').split('\r').join(' ') : ''; }
 async function viewMed(id) {
   showPage('medicine');
   const el = document.getElementById('medicineDetail');
-  el.innerHTML = `<div class="loading" style="padding:5rem"><div class="spinner"></div><p style="color:var(--muted)">Loading medicine details...</p></div>`;
+  el.innerHTML = `<div class="loading" style="padding:5rem"><div class="spinner"></div><p style="color:var(--muted);margin-top:1rem">Loading medicine + FDA data...</p></div>`;
   try {
-    const [{ medicine, availability }, alternatives] = await Promise.all([get('/medicines/' + id), get('/medicines/' + id + '/alternatives')]);
+    // medicine/:id now returns inventory + FDA data merged
+    const med = await get('/medicines/' + id);
+    const inventory = med.inventory || [];
+    const sortedInv = [...inventory].sort((a,b) => a.price - b.price);
+
+    // Build FDA info section
+    const fdaSection = (med.fdaIndications || med.fdaWarnings || med.fdaSideEffects || med.fdaDosage) ? `
+      <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1.5px solid #bfdbfe;border-radius:16px;padding:1.5rem;margin:1.2rem 0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+          <div style="background:linear-gradient(135deg,#1e3a5f,#0284c7);color:white;padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:800;letter-spacing:.5px">🏛️ US FDA VERIFIED DATA</div>
+          <span style="color:var(--muted);font-size:.73rem">Source: OpenFDA Drug Label Database</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          ${med.fdaIndications ? `<div style="background:white;border-radius:10px;padding:1rem;border:1px solid #e2e8f0;grid-column:1/-1">
+            <div style="font-weight:800;color:#1e3a5f;font-size:.82rem;margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-stethoscope" style="color:#0ea5e9"></i> INDICATIONS & USAGE (FDA)</div>
+            <p style="font-size:.8rem;color:#475569;line-height:1.7;margin:0">${cleanFDA(med.fdaIndications).substring(0,500)}${med.fdaIndications.length>500?'...':''}</p>
+          </div>` : ''}
+          ${med.fdaDosage ? `<div style="background:white;border-radius:10px;padding:1rem;border:1px solid #e2e8f0">
+            <div style="font-weight:800;color:#1e3a5f;font-size:.82rem;margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-pills" style="color:#059669"></i> DOSAGE (FDA)</div>
+            <p style="font-size:.8rem;color:#475569;line-height:1.7;margin:0">${cleanFDA(med.fdaDosage).substring(0,300)}${med.fdaDosage.length>300?'...':''}</p>
+          </div>` : ''}
+          ${med.fdaSideEffects ? `<div style="background:white;border-radius:10px;padding:1rem;border:1px solid #e2e8f0">
+            <div style="font-weight:800;color:#1e3a5f;font-size:.82rem;margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-exclamation-triangle" style="color:#f59e0b"></i> ADVERSE REACTIONS (FDA)</div>
+            <p style="font-size:.8rem;color:#475569;line-height:1.7;margin:0">${cleanFDA(med.fdaSideEffects).substring(0,300)}${med.fdaSideEffects.length>300?'...':''}</p>
+          </div>` : ''}
+          ${med.fdaWarnings ? `<div style="background:#fff7ed;border-radius:10px;padding:1rem;border:1px solid #fed7aa;grid-column:1/-1">
+            <div style="font-weight:800;color:#c2410c;font-size:.82rem;margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-exclamation-circle" style="color:#ef4444"></i> WARNINGS (FDA)</div>
+            <p style="font-size:.8rem;color:#7c2d12;line-height:1.7;margin:0">${cleanFDA(med.fdaWarnings).substring(0,400)}${med.fdaWarnings.length>400?'...':''}</p>
+          </div>` : ''}
+          ${med.fdaContraindications ? `<div style="background:#fef2f2;border-radius:10px;padding:1rem;border:1px solid #fecaca;grid-column:1/-1">
+            <div style="font-weight:800;color:#991b1b;font-size:.82rem;margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-ban" style="color:#dc2626"></i> CONTRAINDICATIONS (FDA)</div>
+            <p style="font-size:.8rem;color:#7f1d1d;line-height:1.7;margin:0">${cleanFDA(med.fdaContraindications).substring(0,350)}${med.fdaContraindications.length>350?'...':''}</p>
+          </div>` : ''}
+        </div>
+      </div>` : `<div style="background:#f8fafc;border:1px dashed #e2e8f0;border-radius:10px;padding:.8rem 1rem;margin:.8rem 0;font-size:.78rem;color:var(--muted)">
+        <i class="fas fa-info-circle"></i> FDA data not available for this medicine — showing local database info
+      </div>`;
+
     el.innerHTML = `
       <div class="med-detail">
         <button class="back-btn" onclick="showPage('search')"><i class="fas fa-arrow-left"></i> Back to Search</button>
         <div class="md-header">
-          <h1>${medicine.name}</h1>
-          <p>${medicine.genericName ? '🔬 Generic: ' + medicine.genericName + ' · ' : ''}${medicine.manufacturer ? '🏭 ' + medicine.manufacturer : ''}</p>
-          ${medicine.description ? `<p style="margin-top:.6rem;font-size:.9rem;opacity:.85">${medicine.description}</p>` : ''}
+          <h1>${med.name}</h1>
+          <p style="opacity:.85;font-size:.9rem">${med.genericName ? '🔬 Generic: <strong>'+med.genericName+'</strong> · ' : ''}${med.manufacturer ? '🏭 '+med.manufacturer : ''} ${med.route ? '· 💊 '+med.route : ''}</p>
+          ${med.description ? `<p style="margin-top:.6rem;font-size:.88rem;opacity:.8;line-height:1.6">${med.description}</p>` : ''}
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem">
-            ${medicine.category ? `<span style="background:rgba(255,255,255,.15);color:white;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">${medicine.category}</span>` : ''}
-            ${medicine.requiresPrescription ? `<span style="background:rgba(245,158,11,.3);color:#fef3c7;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">⚕️ Prescription Required</span>` : `<span style="background:rgba(16,185,129,.3);color:#d1fae5;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">✓ Over The Counter</span>`}
-            ${medicine.dosage ? `<span style="background:rgba(255,255,255,.12);color:white;padding:3px 12px;border-radius:20px;font-size:.75rem">💊 ${medicine.dosage}</span>` : ''}
-            ${availability.length ? `<span style="background:rgba(16,185,129,.3);color:#d1fae5;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700"><span class="live-dot"></span>Live Stock</span>` : ''}
+            ${med.category ? `<span style="background:rgba(255,255,255,.15);color:white;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">${med.category}</span>` : ''}
+            ${med.requiresPrescription
+              ? `<span style="background:rgba(245,158,11,.3);color:#fef3c7;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">⚕️ Prescription Required</span>`
+              : `<span style="background:rgba(16,185,129,.3);color:#d1fae5;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">✓ Over The Counter</span>`}
+            ${med.dosage ? `<span style="background:rgba(255,255,255,.12);color:white;padding:3px 12px;border-radius:20px;font-size:.75rem">💊 ${med.dosage}</span>` : ''}
+            ${sortedInv.length ? `<span style="background:rgba(16,185,129,.3);color:#d1fae5;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700"><span class="live-dot"></span> Live Stock</span>` : ''}
+            ${med.dataSource === 'OpenFDA + Local' ? `<span style="background:rgba(14,165,233,.25);color:#bae6fd;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700">🏛️ FDA Verified</span>` : ''}
           </div>
         </div>
+
         <div class="md-grid">
-          <div class="dcard"><h3><i class="fas fa-stethoscope"></i> Medical Uses</h3><ul>${medicine.uses?.length ? medicine.uses.map(u=>`<li>${u}</li>`).join('') : '<li>Not specified</li>'}</ul></div>
-          <div class="dcard"><h3><i class="fas fa-exclamation-circle"></i> Side Effects</h3><ul>${medicine.sideEffects?.length ? medicine.sideEffects.map(s=>`<li>${s}</li>`).join('') : '<li>Not specified</li>'}</ul></div>
+          <div class="dcard"><h3><i class="fas fa-stethoscope"></i> Medical Uses</h3><ul>${med.uses?.length ? med.uses.map(u=>`<li>${u}</li>`).join('') : '<li>See FDA data below</li>'}</ul></div>
+          <div class="dcard"><h3><i class="fas fa-exclamation-circle"></i> Side Effects</h3><ul>${med.sideEffects?.length ? med.sideEffects.map(s=>`<li>${s}</li>`).join('') : '<li>See FDA data below</li>'}</ul></div>
         </div>
+
+        ${fdaSection}
+
         <div class="avail-sec">
-          <h2><i class="fas fa-store" style="color:var(--blue)"></i> Available at ${availability.length} Pharmacy(s) <span style="font-size:.75rem;color:var(--muted);font-weight:500">sorted cheapest first</span></h2>
-          ${availability.length ? availability.map((inv, i) => {
+          <h2><i class="fas fa-store" style="color:var(--blue)"></i> Available at ${sortedInv.length} Pharmacy(s) <span style="font-size:.75rem;color:var(--muted);font-weight:500">sorted cheapest first</span></h2>
+          ${sortedInv.length ? sortedInv.map((inv, i) => {
             const fp = (inv.price * (1-(inv.discount||0)/100)).toFixed(2);
             return `<div class="store-card ${i===0?'cheapest-card':''}">
               <div class="si">
-                <h4><i class="fas fa-clinic-medical" style="color:var(--blue);font-size:.85rem"></i>${inv.store?.name||'Store'} ${i===0?'<span class="cheapest-tag">CHEAPEST</span>':''}</h4>
+                <h4><i class="fas fa-clinic-medical" style="color:var(--blue);font-size:.85rem"></i> ${inv.store?.name||'Pharmacy'} ${i===0?'<span class="cheapest-tag">CHEAPEST</span>':''}</h4>
                 <p><i class="fas fa-map-marker-alt"></i>${inv.store?.address||''}</p>
                 <p><i class="fas fa-clock"></i>${inv.store?.openingHours||''} <span style="color:${inv.store?.isOpen?'#059669':'#dc2626'};font-weight:700;margin-left:4px">${inv.store?.isOpen?'● Open Now':'● Closed'}</span></p>
                 <p><i class="fas fa-boxes"></i><span style="color:${inv.stock<10?'#dc2626':'#059669'};font-weight:700">${inv.stock} units</span> in stock</p>
@@ -218,29 +263,14 @@ async function viewMed(id) {
                   ${inv.discount?`<div class="sp-disc">🏷️ ${inv.discount}% OFF</div>`:''}
                 </div>
                 ${currentUser
-                  ? `<button class="btn-order" onclick="placeOrder('${inv.store?._id}','${medicine._id}','${inv.price}','${inv.discount||0}')"><i class="fas fa-cart-plus"></i> Order</button>`
+                  ? `<button class="btn-order" onclick="placeOrder('${inv.store?._id}','${med._id}','${inv.price}','${inv.discount||0}')"><i class="fas fa-cart-plus"></i> Order</button>`
                   : `<button class="btn-order" onclick="showPage('login')"><i class="fas fa-lock"></i> Login to Order</button>`}
-                <button class="btn-map" onclick="viewOnMap('${inv.store?._id}')"><i class="fas fa-map-marked-alt"></i> On Map</button>
+                <button class="btn-map" onclick="viewOnMap('${inv.store?._id}')"><i class="fas fa-map-marked-alt"></i> Map</button>
+                <button onclick="saveFavourite('${med._id}','${med.name}')" style="background:#fffbeb;border:1.5px solid #fde68a;color:#92400e;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:700">⭐ Save</button>
               </div>
             </div>`;
-          }).join('') : `<div class="empty-state"><i class="fas fa-store-slash"></i><h3>Not available anywhere right now</h3></div>`}
+          }).join('') : `<div class="empty-state"><i class="fas fa-store-slash"></i><h3>Not available at any pharmacy right now</h3></div>`}
         </div>
-        ${alternatives.length ? `
-        <div class="alt-sec">
-          <h2><i class="fas fa-robot" style="color:var(--green2)"></i> Cheaper Alternatives <span style="font-size:.75rem;color:var(--muted);font-weight:500">AI suggested alternatives</span></h2>
-          ${alternatives.map(a => `
-            <div class="alt-card" onclick="viewMed('${a.medicine._id}')">
-              <div>
-                <strong style="color:var(--navy);font-size:.9rem">${a.medicine.name}</strong>
-                <div style="color:var(--muted);font-size:.78rem;margin-top:2px">${a.medicine.genericName||''} · ${a.medicine.category||''}</div>
-                ${!a.medicine.requiresPrescription?'<span class="badge bg" style="margin-top:4px">OTC — No Prescription</span>':''}
-              </div>
-              <div style="text-align:right">
-                ${a.cheapestOption ? `<div class="sp-final" style="font-size:1rem">₹${(a.cheapestOption.price*(1-(a.cheapestOption.discount||0)/100)).toFixed(2)}</div><div style="font-size:.72rem;color:var(--muted)">${a.cheapestOption.store?.name||''}</div>` : '<div style="color:var(--muted);font-size:.8rem">Check stock</div>'}
-                <div style="color:var(--blue);font-size:.75rem;margin-top:3px;font-weight:700">View →</div>
-              </div>
-            </div>`).join('')}
-        </div>` : ''}
       </div>`;
   } catch(err) {
     el.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Error loading medicine</h3><p>${err.message}</p></div>`;
