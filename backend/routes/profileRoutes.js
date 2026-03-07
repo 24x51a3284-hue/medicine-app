@@ -1,0 +1,114 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const { readDB, writeDB } = require('../../db');
+const { authMiddleware } = require('../middleware/auth');
+
+// Get profile
+router.get('/', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const { password: _, ...safeUser } = user;
+    const orders = db.orders.filter(o => o.user === req.user.id);
+    res.json({ ...safeUser, totalOrders: orders.length, totalSpent: orders.reduce((s,o)=>s+(o.totalAmount||0),0) });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Update profile
+router.put('/', authMiddleware, async (req, res) => {
+  try {
+    const { name, phone, address, age, bloodGroup, allergies } = req.body;
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+    if (age) user.age = age;
+    if (bloodGroup) user.bloodGroup = bloodGroup;
+    if (allergies) user.allergies = allergies;
+    user.updatedAt = new Date().toISOString();
+    writeDB(db);
+    const { password: _, ...safeUser } = user;
+    res.json(safeUser);
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Change password
+router.put('/change-password', authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Both passwords required' });
+    if (newPassword.length < 6) return res.status(400).json({ message: 'New password must be 6+ characters' });
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) return res.status(400).json({ message: 'Current password is incorrect' });
+    user.password = await bcrypt.hash(newPassword, 10);
+    writeDB(db);
+    res.json({ message: 'Password changed successfully' });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Save medicine reminder
+router.post('/reminders', authMiddleware, (req, res) => {
+  try {
+    const { medicineName, time, frequency, notes } = req.body;
+    const db = readDB();
+    if (!db.reminders) db.reminders = [];
+    const reminder = { _id: Date.now().toString(), userId: req.user.id, medicineName, time, frequency, notes, active: true, createdAt: new Date().toISOString() };
+    db.reminders.push(reminder);
+    writeDB(db);
+    res.status(201).json(reminder);
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Get reminders
+router.get('/reminders', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const reminders = (db.reminders || []).filter(r => r.userId === req.user.id);
+    res.json(reminders);
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Delete reminder
+router.delete('/reminders/:id', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    if (!db.reminders) db.reminders = [];
+    db.reminders = db.reminders.filter(r => !(r._id === req.params.id && r.userId === req.user.id));
+    writeDB(db);
+    res.json({ message: 'Reminder deleted' });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Save favourite medicine
+router.post('/favourites', authMiddleware, (req, res) => {
+  try {
+    const { medicineId } = req.body;
+    const db = readDB();
+    if (!db.favourites) db.favourites = [];
+    const exists = db.favourites.find(f => f.userId === req.user.id && f.medicineId === medicineId);
+    if (exists) return res.status(400).json({ message: 'Already saved' });
+    db.favourites.push({ _id: Date.now().toString(), userId: req.user.id, medicineId, createdAt: new Date().toISOString() });
+    writeDB(db);
+    res.json({ message: 'Saved to favourites' });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Get favourites
+router.get('/favourites', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const favs = (db.favourites || []).filter(f => f.userId === req.user.id).map(f => ({
+      ...f, medicine: db.medicines.find(m => m._id === f.medicineId)
+    }));
+    res.json(favs);
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+module.exports = router;

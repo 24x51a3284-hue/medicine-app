@@ -61,6 +61,8 @@
       </span>
       <span id="userLinks" style="display:none">
         <a href="#" onclick="showPage('orders')"><i class="fas fa-box"></i> Orders<span id="obadge" class="badge-notif" style="display:none">!</span></a>
+        <a href="#" onclick="showPage('profile')"><i class="fas fa-user-circle"></i> Profile</a>
+        <a href="#" onclick="showPage('reminders')"><i class="fas fa-bell"></i> Reminders</a>
         <a href="#" onclick="showPage('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a>
         <span id="uname" class="user-chip"></span>
         <a href="#" onclick="logout()" class="nb nb-out">Logout</a>
@@ -277,6 +279,89 @@
       <input id="chatIn" placeholder="Type your question..." onkeypress="if(event.key==='Enter')sendMsg()"/>
       <button onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
     </div>
+  </div>
+</div>
+
+<!-- Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<!-- PROFILE PAGE -->
+<div id="page-profile" class="page">
+  <div style="padding:2rem;max-width:700px;margin:0 auto">
+    <h2 class="page-title"><i class="fas fa-user-circle"></i> My Profile</h2>
+    <div style="background:linear-gradient(135deg,#1e3a5f,#1e4d8c);border-radius:20px;padding:2rem;color:white;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+      <div style="width:72px;height:72px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid rgba(255,255,255,.4)">👤</div>
+      <div>
+        <div id="pf-name" style="font-size:1.3rem;font-weight:900"></div>
+        <div id="pf-email" style="color:rgba(255,255,255,.7);font-size:.88rem;margin-top:4px"></div>
+        <div id="pf-role" style="margin-top:6px"></div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:1.5rem;text-align:center;flex-wrap:wrap">
+        <div><div id="pf-orders" style="font-size:1.8rem;font-weight:900">0</div><div style="font-size:.72rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px">Orders</div></div>
+        <div><div id="pf-spent" style="font-size:1.8rem;font-weight:900">₹0</div><div style="font-size:.72rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px">Spent</div></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="white-box" style="grid-column:1/-1">
+        <h3>✏️ Edit Profile</h3>
+        <div class="fg"><label>Full Name</label><input class="fi" id="pf-inp-name" placeholder="Your name"/></div>
+        <div class="fg"><label>Phone</label><input class="fi" id="pf-inp-phone" placeholder="10-digit number"/></div>
+        <div class="fg"><label>Address</label><input class="fi" id="pf-inp-address" placeholder="Your address"/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+          <div class="fg"><label>Age</label><input class="fi" type="number" id="pf-inp-age" placeholder="Age"/></div>
+          <div class="fg"><label>Blood Group</label><select class="fi" id="pf-inp-blood"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+        </div>
+        <div class="fg"><label>Known Allergies</label><input class="fi" id="pf-inp-allergies" placeholder="e.g. Penicillin, Aspirin"/></div>
+        <button class="btn-full" style="max-width:180px;cursor:none" onclick="saveProfile()"><i class="fas fa-save"></i> Save Changes</button>
+        <div id="pf-msg" style="margin-top:.5rem;font-size:.84rem;color:var(--green2)"></div>
+      </div>
+      <div class="white-box">
+        <h3>🔒 Change Password</h3>
+        <div class="fg"><label>Current Password</label><input class="fi" type="password" id="pw-cur" placeholder="Current password"/></div>
+        <div class="fg"><label>New Password</label><input class="fi" type="password" id="pw-new" placeholder="New password (6+ chars)"/></div>
+        <button class="btn-full" style="cursor:none" onclick="changePassword()">Update Password</button>
+        <div id="pw-msg" style="margin-top:.5rem;font-size:.84rem"></div>
+      </div>
+      <div class="white-box">
+        <h3>⭐ Saved Medicines</h3>
+        <div id="favsList"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REMINDERS PAGE -->
+<div id="page-reminders" class="page">
+  <div style="padding:2rem;max-width:700px;margin:0 auto">
+    <h2 class="page-title"><i class="fas fa-bell"></i> Medicine Reminders</h2>
+    <div class="white-box" style="margin-bottom:1.5rem">
+      <h3>➕ Set New Reminder</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
+        <div class="fg" style="grid-column:1/-1"><label>Medicine Name *</label><input class="fi" id="rm-med" placeholder="e.g. Paracetamol 500mg"/></div>
+        <div class="fg"><label>Time *</label><input class="fi" type="time" id="rm-time"/></div>
+        <div class="fg"><label>Frequency *</label><select class="fi" id="rm-freq"><option value="daily">Daily</option><option value="twice_daily">Twice Daily</option><option value="weekly">Weekly</option><option value="alternate">Alternate Days</option><option value="custom">Custom</option></select></div>
+        <div class="fg" style="grid-column:1/-1"><label>Notes</label><input class="fi" id="rm-notes" placeholder="e.g. Take after food"/></div>
+      </div>
+      <button class="btn-full" style="max-width:200px;cursor:none" onclick="saveReminder()"><i class="fas fa-bell"></i> Set Reminder</button>
+      <div id="rm-msg" style="margin-top:.5rem;font-size:.84rem;color:var(--green2)"></div>
+    </div>
+    <div id="remindersList"><div class="empty-state"><i class="fas fa-bell-slash"></i><h3>No reminders set</h3><p>Add your first medicine reminder above</p></div></div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div id="payModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)">
+  <div style="background:white;border-radius:20px;padding:2rem;max-width:420px;width:100%;border:1.5px solid var(--border);box-shadow:var(--shadow2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem">
+      <h3 style="font-size:1rem;font-weight:900;color:var(--navy)">💳 Choose Payment Method</h3>
+      <button onclick="closePayModal()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem">✕</button>
+    </div>
+    <div id="payOrderSummary" style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:1rem;font-size:.85rem"></div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem">
+      <button onclick="payWith('razorpay')" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;border:none;padding:13px;border-radius:10px;font-weight:800;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fas fa-credit-card"></i> Pay with Razorpay (UPI/Card/Wallet)</button>
+      <button onclick="payWith('cod')" style="background:white;border:2px solid var(--border);color:var(--text);padding:12px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fas fa-money-bill-wave"></i> Cash on Delivery / Pickup</button>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.75rem"><i class="fas fa-lock"></i> 100% Secure · Powered by Razorpay</p>
   </div>
 </div>
 

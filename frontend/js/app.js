@@ -828,3 +828,266 @@ async function post(path, body, auth = false) {
 }
 function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 3500); }
+
+// ══════════════════════════════════════════════════════════════════
+// ── FIX 1: PAYMENT (Razorpay + COD) ──────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+let pendingOrderData = null;
+
+// Replace old placeOrder with payment-first flow
+async function placeOrder(storeId, medId, price, discount) {
+  if (!currentUser) { showPage('login'); return; }
+  const qty = prompt('Enter quantity:', '1');
+  if (!qty || isNaN(qty) || +qty <= 0) return;
+  const finalPrice = price * (1 - discount/100);
+  const total = (finalPrice * +qty).toFixed(2);
+  pendingOrderData = { storeId, medId, price: +price, discount: +discount, qty: +qty, total: +total };
+  openPayModal(storeId, medId, total);
+}
+
+function openPayModal(storeId, medId, total) {
+  const modal = document.getElementById('payModal');
+  document.getElementById('payOrderSummary').innerHTML =
+    `<div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="color:var(--muted)">Order Total</span>
+      <strong style="color:var(--green2);font-size:1.1rem">₹${total}</strong>
+    </div>
+    <div style="color:var(--muted);font-size:.78rem;margin-top:4px">Qty: ${pendingOrderData.qty} · ${pendingOrderData.discount>0?pendingOrderData.discount+'% discount applied':''}</div>`;
+  modal.style.display = 'flex';
+}
+
+function closePayModal() {
+  document.getElementById('payModal').style.display = 'none';
+  pendingOrderData = null;
+}
+
+async function payWith(method) {
+  if (!pendingOrderData) return;
+  if (method === 'cod') {
+    closePayModal();
+    await confirmOrder(null);
+  } else {
+    // Razorpay
+    try {
+      const rzpOrder = await post('/payment/create-order', { amount: pendingOrderData.total, receipt: 'order_' + Date.now() }, true);
+      if (rzpOrder.demo) {
+        // Demo mode — simulate success
+        closePayModal();
+        showToast('💳 Payment simulated (Demo mode)');
+        await confirmOrder('demo_pay_' + Date.now());
+        return;
+      }
+      const options = {
+        key: rzpOrder.key,
+        amount: rzpOrder.amount,
+        currency: rzpOrder.currency,
+        name: 'MediFind',
+        description: 'Medicine Order',
+        image: '',
+        order_id: rzpOrder.orderId,
+        handler: async (response) => {
+          closePayModal();
+          // Verify payment
+          await post('/payment/verify', {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature
+          }, true);
+          await confirmOrder(response.razorpay_payment_id);
+        },
+        prefill: { name: currentUser.name, email: currentUser.email || '' },
+        theme: { color: '#0ea5e9' },
+        modal: { ondismiss: () => showToast('Payment cancelled') }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+    } catch(err) {
+      showToast('❌ Payment error: ' + err.message);
+    }
+  }
+}
+
+async function confirmOrder(paymentId) {
+  if (!pendingOrderData) return;
+  try {
+    const data = await post('/orders', {
+      store: pendingOrderData.storeId,
+      items: [{ medicine: pendingOrderData.medId, quantity: pendingOrderData.qty, price: pendingOrderData.price }],
+      paymentMethod: paymentId ? 'razorpay' : 'cash',
+      paymentId: paymentId
+    }, true);
+    showToast('✅ Order placed! Total: ₹' + data.totalAmount + (paymentId && !paymentId.startsWith('demo') ? ' · Payment confirmed' : ' · Pay at pickup'));
+    showToast('📧 Confirmation email sent!');
+    pendingOrderData = null;
+    document.getElementById('obadge').style.display = 'inline';
+    setTimeout(() => showPage('orders'), 1800);
+  } catch(err) {
+    showToast('❌ Order failed: ' + err.message);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── FIX 2: PROFILE PAGE ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+async function loadProfile() {
+  if (!currentUser) { showPage('login'); return; }
+  try {
+    const profile = await get('/profile', true);
+    document.getElementById('pf-name').textContent = profile.name;
+    document.getElementById('pf-email').textContent = profile.email;
+    document.getElementById('pf-role').innerHTML = `<span style="background:rgba(255,255,255,.2);color:white;padding:3px 12px;border-radius:20px;font-size:.75rem;font-weight:700;text-transform:uppercase">${profile.role}</span>`;
+    document.getElementById('pf-orders').textContent = profile.totalOrders || 0;
+    document.getElementById('pf-spent').textContent = '₹' + (profile.totalSpent || 0).toFixed(0);
+    // Fill form
+    document.getElementById('pf-inp-name').value = profile.name || '';
+    document.getElementById('pf-inp-phone').value = profile.phone || '';
+    document.getElementById('pf-inp-address').value = profile.address || '';
+    document.getElementById('pf-inp-age').value = profile.age || '';
+    document.getElementById('pf-inp-blood').value = profile.bloodGroup || '';
+    document.getElementById('pf-inp-allergies').value = profile.allergies || '';
+    loadFavourites();
+  } catch(err) { showToast('❌ Error loading profile'); }
+}
+
+async function saveProfile() {
+  try {
+    await fetch(API + '/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        name: document.getElementById('pf-inp-name').value,
+        phone: document.getElementById('pf-inp-phone').value,
+        address: document.getElementById('pf-inp-address').value,
+        age: document.getElementById('pf-inp-age').value,
+        bloodGroup: document.getElementById('pf-inp-blood').value,
+        allergies: document.getElementById('pf-inp-allergies').value
+      })
+    });
+    document.getElementById('pf-msg').textContent = '✅ Profile saved successfully!';
+    setTimeout(() => document.getElementById('pf-msg').textContent = '', 3000);
+    showToast('✅ Profile updated!');
+    // Update nav name
+    currentUser.name = document.getElementById('pf-inp-name').value;
+    localStorage.setItem('user', JSON.stringify(currentUser));
+    document.getElementById('uname').textContent = '👤 ' + currentUser.name;
+  } catch { showToast('❌ Save failed'); }
+}
+
+async function changePassword() {
+  const cur = document.getElementById('pw-cur').value;
+  const nw = document.getElementById('pw-new').value;
+  const msg = document.getElementById('pw-msg');
+  if (!cur || !nw) { msg.style.color='var(--red)'; msg.textContent = 'Fill both fields'; return; }
+  try {
+    await fetch(API + '/profile/change-password', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ currentPassword: cur, newPassword: nw })
+    });
+    msg.style.color = 'var(--green2)'; msg.textContent = '✅ Password changed!';
+    document.getElementById('pw-cur').value = ''; document.getElementById('pw-new').value = '';
+  } catch(err) { msg.style.color = 'var(--red)'; msg.textContent = '❌ ' + err.message; }
+}
+
+async function loadFavourites() {
+  const el = document.getElementById('favsList'); if (!el) return;
+  try {
+    const favs = await get('/profile/favourites', true);
+    el.innerHTML = favs.length ? favs.map(f => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #f1f5f9;font-size:.85rem">
+        <span style="cursor:pointer;color:var(--blue);font-weight:700" onclick="viewMed('${f.medicineId}')">${f.medicine?.name||'Medicine'}</span>
+        <span style="color:var(--muted);font-size:.78rem">${f.medicine?.category||''}</span>
+      </div>`).join('') : '<p style="color:var(--muted);font-size:.83rem">No saved medicines yet.<br>Click ⭐ on any medicine to save it.</p>';
+  } catch { el.innerHTML = '<p style="color:var(--muted);font-size:.83rem">Log in to see favourites</p>'; }
+}
+
+async function saveFavourite(medicineId, name) {
+  if (!currentUser) { showPage('login'); return; }
+  try {
+    await post('/profile/favourites', { medicineId }, true);
+    showToast('⭐ ' + name + ' saved to favourites!');
+  } catch(err) { showToast(err.message === 'Already saved' ? '⭐ Already in favourites!' : '❌ ' + err.message); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── FIX 3: MEDICINE REMINDERS ────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+async function loadReminders() {
+  if (!currentUser) { showPage('login'); return; }
+  const el = document.getElementById('remindersList'); if (!el) return;
+  try {
+    const reminders = await get('/profile/reminders', true);
+    el.innerHTML = reminders.length ? reminders.map(r => `
+      <div style="background:white;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;margin-bottom:.7rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;box-shadow:0 1px 6px rgba(0,0,0,.04)">
+        <div>
+          <div style="font-weight:800;color:var(--navy);font-size:.9rem;display:flex;align-items:center;gap:7px">
+            <span style="width:10px;height:10px;background:var(--green);border-radius:50%;display:inline-block"></span>
+            ${r.medicineName}
+          </div>
+          <div style="color:var(--muted);font-size:.78rem;margin-top:3px">
+            🕐 ${r.time} · 📅 ${r.frequency.replace('_',' ')} ${r.notes?'· '+r.notes:''}
+          </div>
+        </div>
+        <button onclick="deleteReminder('${r._id}')" style="background:#fee2e2;color:var(--red);border:1px solid #fecaca;padding:6px 12px;border-radius:7px;cursor:pointer;font-weight:700;font-size:.78rem"><i class="fas fa-trash"></i></button>
+      </div>`).join('') :
+      `<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>No reminders yet</h3><p>Set your first reminder above</p></div>`;
+    // Schedule browser notifications for active reminders
+    scheduleNotifications(reminders);
+  } catch { el.innerHTML = `<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>Login to see reminders</h3></div>`; }
+}
+
+async function saveReminder() {
+  const med = document.getElementById('rm-med').value;
+  const time = document.getElementById('rm-time').value;
+  const freq = document.getElementById('rm-freq').value;
+  const notes = document.getElementById('rm-notes').value;
+  if (!med || !time) { document.getElementById('rm-msg').style.color='var(--red)'; document.getElementById('rm-msg').textContent='Medicine name and time are required'; return; }
+  try {
+    await post('/profile/reminders', { medicineName: med, time, frequency: freq, notes }, true);
+    document.getElementById('rm-msg').style.color = 'var(--green2)';
+    document.getElementById('rm-msg').textContent = '✅ Reminder set for ' + med + ' at ' + time;
+    document.getElementById('rm-med').value = '';
+    document.getElementById('rm-notes').value = '';
+    loadReminders();
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(p => { if (p === 'granted') showToast('🔔 Notifications enabled!'); });
+    }
+  } catch(err) { document.getElementById('rm-msg').textContent = '❌ ' + err.message; }
+}
+
+async function deleteReminder(id) {
+  try {
+    await fetch(API + '/profile/reminders/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+    showToast('🗑️ Reminder deleted'); loadReminders();
+  } catch { showToast('❌ Delete failed'); }
+}
+
+function scheduleNotifications(reminders) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  reminders.forEach(r => {
+    const [h, m] = r.time.split(':').map(Number);
+    const now = new Date();
+    let fire = new Date(); fire.setHours(h, m, 0, 0);
+    if (fire <= now) fire.setDate(fire.getDate() + 1);
+    const delay = fire - now;
+    if (delay < 24 * 60 * 60 * 1000) { // only schedule if within 24 hrs
+      setTimeout(() => {
+        new Notification('💊 Medicine Reminder — MediFind', {
+          body: 'Time to take: ' + r.medicineName + (r.notes ? '\n' + r.notes : ''),
+          icon: '/favicon.ico'
+        });
+      }, delay);
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ── OVERRIDE showPage to load new pages ──────────────────────────
+// ══════════════════════════════════════════════════════════════════
+const _origShowPage = showPage;
+showPage = function(p) {
+  _origShowPage(p);
+  if (p === 'profile') loadProfile();
+  if (p === 'reminders') loadReminders();
+};
