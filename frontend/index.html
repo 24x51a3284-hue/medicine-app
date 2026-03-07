@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <link rel="stylesheet" href="css/style.css"/>
   <style>
@@ -186,6 +188,7 @@
         <button class="mc-btn active" onclick="filterMap('all',this)"><i class="fas fa-store"></i> All Stores</button>
         <button class="mc-btn" onclick="filterMap('open',this)"><i class="fas fa-door-open"></i> Open Now</button>
       </div>
+      <div id="routePanel" style="display:none;background:linear-gradient(135deg,#e0f2fe,#f0fdf4);border:1.5px solid #bae6fd;border-radius:14px;padding:1rem 1.4rem;margin-bottom:1rem;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;"><div style="display:flex;align-items:center;gap:12px"><div style="width:42px;height:42px;background:linear-gradient(135deg,#0ea5e9,#0284c7);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.1rem;flex-shrink:0">      <div class="stores-layout">#x1F9ED;</div><div><div style="font-weight:800;color:#1e3a5f;font-size:.92rem" id="routeDestName">Navigating...</div><div style="color:#64748b;font-size:.8rem;margin-top:2px"><span id="routeDist" style="font-weight:700;color:#0ea5e9"></span><span style="margin:0 6px">      <div class="stores-layout">#xB7;</span><span id="routeTime" style="font-weight:700;color:#059669"></span></div></div></div><button onclick="clearRoute()" style="background:#fee2e2;color:#ef4444;border:1.5px solid #fecaca;padding:7px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:.8rem;white-space:nowrap"><i class="fas fa-times"></i> End Route</button></div>
       <div class="stores-layout">
         <div class="stores-list" id="storesList"></div>
         <div class="map-container">

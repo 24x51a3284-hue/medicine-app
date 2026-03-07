@@ -296,3 +296,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(255,255,255
 .live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block;animation:blink 1.5s infinite;margin-right:4px;}
 @media(max-width:900px){.stores-layout{grid-template-columns:1fr;}.map-container{position:relative;top:0;}#storeMap{height:350px;}.features-strip{flex-direction:column;}.feat-item{border-right:none;border-bottom:1px solid rgba(255,255,255,.08);}}
 @media(max-width:768px){.nav-links a:not(.nb){display:none;}.search-page,.med-detail,.stores-page,.orders-page,.dashboard{padding:1.2rem 1rem;}.md-grid{grid-template-columns:1fr;}.hero{padding:5rem 1rem 3rem;}.chatbot{width:calc(100vw - 20px);right:10px;bottom:10px;}}
+
+/* ROUTING MACHINE OVERRIDES */
+.leaflet-routing-container{display:none!important;}
+.leaflet-routing-alt{display:none!important;}
+#routePanel{display:none;}
+#routePanel.active{display:flex!important;}

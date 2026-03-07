@@ -1,6 +1,7 @@
 const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
 let currentUser = null, token = localStorage.getItem('token');
 let allResults = [], socket, storeMap = null, mapMarkers = [], allStores = [], myLocMarker = null;
+let routingControl = null, userLat = null, userLng = null;
 let mx = 0, my = 0, rx = 0, ry = 0;
 
 // ── LOADER ─────────────────────────────────────────────────────────────────
@@ -383,20 +384,21 @@ function getMyLoc() {
   if (!navigator.geolocation) { showToast('❌ Geolocation not supported'); return; }
   showToast('📍 Getting your location...');
   navigator.geolocation.getCurrentPosition(pos => {
-    const { latitude: lat, longitude: lng } = pos.coords;
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
     if (storeMap) {
       if (myLocMarker) storeMap.removeLayer(myLocMarker);
       const myIcon = L.divIcon({
-        html: `<div style="width:18px;height:18px;background:#0ea5e9;border:3px solid white;border-radius:50%;box-shadow:0 0 0 6px rgba(14,165,233,.25),0 4px 12px rgba(14,165,233,.4)"></div>`,
-        className: '', iconSize: [18, 18], iconAnchor: [9, 9]
+        html: `<div style="width:20px;height:20px;background:#0ea5e9;border:3px solid white;border-radius:50%;box-shadow:0 0 0 8px rgba(14,165,233,.2),0 4px 12px rgba(14,165,233,.4)"></div>`,
+        className: '', iconSize: [20, 20], iconAnchor: [10, 10]
       });
-      myLocMarker = L.marker([lat, lng], { icon: myIcon }).addTo(storeMap);
-      myLocMarker.bindPopup('<div class="popup-title">📍 Your Location</div>').openPopup();
-      storeMap.setView([lat, lng], 14, { animate: true });
-      sortStoresByDistance(lat, lng);
-      showToast('✅ Location found! Sorted by nearest pharmacy.');
+      myLocMarker = L.marker([userLat, userLng], { icon: myIcon }).addTo(storeMap);
+      myLocMarker.bindPopup('<div style="font-weight:800;color:#1e3a5f">📍 You are here</div>').openPopup();
+      storeMap.setView([userLat, userLng], 14, { animate: true });
+      sortStoresByDistance(userLat, userLng);
+      showToast('✅ Location found! Tap "Directions" on any pharmacy.');
     }
-  }, () => showToast('❌ Could not access location'));
+  }, () => showToast('❌ Could not access location. Please allow location permission.'));
 }
 
 function sortStoresByDistance(lat, lng) {
@@ -414,11 +416,114 @@ function dist(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function getDirections(lat, lng, name) {
-  if (!lat || !lng) { showToast('❌ Location not available for this store'); return; }
-  // Opens directions in a new tab WITHOUT leaving the app
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-  showToast('🗺️ Directions opened in new tab!');
+// ── IN-APP ROUTING (like Uber/Rapido) ──────────────────────────────────────
+function getDirections(destLat, destLng, name) {
+  if (!destLat || !destLng) { showToast('❌ Store location not available'); return; }
+  showPage('stores');
+  setTimeout(() => {
+    if (!userLat || !userLng) {
+      // Ask for location first
+      if (!navigator.geolocation) { showToast('❌ Location not supported'); return; }
+      showToast('📍 Getting your location for route...');
+      navigator.geolocation.getCurrentPosition(pos => {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        drawRoute(userLat, userLng, destLat, destLng, name);
+      }, () => {
+        // Use Hyderabad center as fallback start
+        showToast('📍 Using Hyderabad center as start point');
+        drawRoute(17.385, 78.4867, destLat, destLng, name);
+      });
+    } else {
+      drawRoute(userLat, userLng, destLat, destLng, name);
+    }
+  }, 500);
+}
+
+function drawRoute(fromLat, fromLng, toLat, toLng, name) {
+  if (!storeMap) return;
+  // Remove existing route
+  if (routingControl) { storeMap.removeControl(routingControl); routingControl = null; }
+
+  // Show route panel
+  const panel = document.getElementById('routePanel');
+  if (panel) {
+    panel.style.display = 'flex';
+    document.getElementById('routeDestName').textContent = '🏥 Route to ' + name;
+    document.getElementById('routeDist').textContent = 'Calculating...';
+    document.getElementById('routeTime').textContent = '';
+  }
+
+  // Draw route on map using OSRM (free, no API key)
+  routingControl = L.Routing.control({
+    waypoints: [
+      L.latLng(fromLat, fromLng),
+      L.latLng(toLat, toLng)
+    ],
+    router: L.Routing.osrmv1({
+      serviceUrl: 'https://router.project-osrm.org/route/v1'
+    }),
+    lineOptions: {
+      styles: [
+        { color: '#0ea5e9', weight: 5, opacity: 0.9 },
+        { color: '#bae6fd', weight: 8, opacity: 0.3 }
+      ]
+    },
+    show: false, // Hide the default turn-by-turn panel (we show our own)
+    addWaypoints: false,
+    routeWhileDragging: false,
+    fitSelectedRoutes: true,
+    showAlternatives: false,
+    createMarker: function(i, wp) {
+      const isStart = i === 0;
+      const icon = L.divIcon({
+        html: `<div style="
+          width:${isStart?'18px':'38px'};
+          height:${isStart?'18px':'38px'};
+          background:${isStart?'#0ea5e9':'linear-gradient(135deg,#10b981,#059669)'};
+          border:3px solid white;
+          border-radius:${isStart?'50%':'50% 50% 50% 0'};
+          transform:${isStart?'none':'rotate(-45deg)'};
+          box-shadow:0 4px 12px ${isStart?'rgba(14,165,233,.5)':'rgba(16,185,129,.5)'};
+          display:flex;align-items:center;justify-content:center;
+        ">${isStart?'':'<div style="width:12px;height:12px;background:white;border-radius:50%;transform:rotate(45deg)"></div>'}</div>`,
+        className: '',
+        iconSize: isStart?[18,18]:[38,38],
+        iconAnchor: isStart?[9,9]:[19,38]
+      });
+      return L.marker(wp.latLng, { icon });
+    }
+  }).addTo(storeMap);
+
+  // Listen for route found to show distance & time
+  routingControl.on('routesfound', function(e) {
+    const route = e.routes[0];
+    const km = (route.summary.totalDistance / 1000).toFixed(1);
+    const mins = Math.round(route.summary.totalTime / 60);
+    document.getElementById('routeDist').textContent = km + ' km';
+    document.getElementById('routeTime').textContent = mins + ' min';
+    showToast('✅ Route found — ' + km + ' km, ~' + mins + ' min');
+  });
+
+  routingControl.on('routingerror', function() {
+    showToast('❌ Could not find route. Check internet connection.');
+    document.getElementById('routeDist').textContent = 'Route unavailable';
+  });
+
+  // Scroll map into view
+  document.getElementById('storeMap')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function clearRoute() {
+  if (routingControl) { storeMap.removeControl(routingControl); routingControl = null; }
+  const panel = document.getElementById('routePanel');
+  if (panel) panel.style.display = 'none';
+  showToast('🗺️ Route cleared');
+  // Reset map view to show all stores
+  if (mapMarkers.length > 0) {
+    const group = L.featureGroup(mapMarkers);
+    storeMap.fitBounds(group.getBounds().pad(.12));
+  }
 }
 
 function shareLocation(name, address, lat, lng) {
