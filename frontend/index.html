@@ -3,51 +3,68 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MediFind — AI Medicine Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <title>MediFind — Medicine Price Comparison</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    body{font-family:'Inter',system-ui,sans-serif;}
+    /* 3D FLOATING MEDICAL OBJECTS */
+    .med-obj{position:absolute;pointer-events:none;opacity:.13;animation:float3d linear infinite;}
+    @keyframes float3d{0%{transform:translateY(100vh) rotateX(0deg) rotateZ(0deg)}100%{transform:translateY(-120px) rotateX(360deg) rotateZ(360deg)}}
+    .pill{width:28px;height:12px;border-radius:20px;background:linear-gradient(90deg,#0ea5e9,#7dd3fc);}
+    .capsule{width:22px;height:10px;border-radius:20px;background:linear-gradient(90deg,#ef4444 50%,#f8fafc 50%);}
+    .tablet{width:18px;height:18px;border-radius:4px;background:#0ea5e9;}
+    .cross{font-size:1.2rem;color:#0ea5e9;}
+    .drop{width:14px;height:18px;border-radius:50% 50% 50% 0;background:#10b981;transform:rotate(-45deg);}
+  </style>
 </head>
 <body>
 
 <div id="cur"></div><div id="cur2"></div>
-<canvas id="bgc"></canvas>
+<canvas id="bgc" style="display:none"></canvas>
 
 <!-- LOADER -->
 <div id="loader">
-  <div class="ld-logo">MEDIFIND</div>
+  <div class="ld-cross">⚕️</div>
+  <div class="ld-logo">Medi<span>Find</span></div>
   <div class="ld-bar"><div class="ld-fill"></div></div>
-  <div class="ld-txt" id="ldpct">INITIALIZING...</div>
+  <div class="ld-txt" id="ldpct">LOADING...</div>
 </div>
 
 <!-- RT BAR -->
 <div id="rtbar">
   <div class="rt-dot"></div>
-  <span id="rtmsg">Real-time updates active</span>
+  <span id="rtmsg">Real-time stock updates active</span>
   <button onclick="document.getElementById('rtbar').style.display='none'">✕</button>
 </div>
 
 <!-- NAV -->
-<nav id="navbar">
-  <div class="nav-logo"><div class="nav-logo-icon">💊</div>MEDIFIND</div>
-  <div class="nav-links">
-    <a href="#" onclick="showPage('home')"><i class="fas fa-home"></i> Home</a>
-    <a href="#" onclick="showPage('search')"><i class="fas fa-search"></i> Search</a>
-    <a href="#" onclick="showPage('stores')"><i class="fas fa-map-marked-alt"></i> Map</a>
-    <span id="authLinks">
-      <a href="#" onclick="showPage('login')" class="nb nb-out">Login</a>
-      <a href="#" onclick="showPage('register')" class="nb">Register</a>
-    </span>
-    <span id="userLinks" style="display:none">
-      <a href="#" onclick="showPage('orders')"><i class="fas fa-box"></i> Orders<span id="obadge" class="badge-notif" style="display:none">!</span></a>
-      <a href="#" onclick="showPage('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a>
-      <span id="uname" class="user-chip"></span>
-      <a href="#" onclick="logout()" class="nb nb-out">Logout</a>
-    </span>
-    <button class="nb nb-red emergency-pulse" onclick="toggleEmrg()"><i class="fas fa-ambulance"></i> SOS</button>
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" onclick="showPage('home')">
+      <div class="nav-logo-icon">⚕️</div>
+      <div class="nav-logo-text">Medi<span>Find</span></div>
+    </a>
+    <div class="nav-links">
+      <a href="#" onclick="showPage('home')"><i class="fas fa-home"></i> Home</a>
+      <a href="#" onclick="showPage('search')"><i class="fas fa-search"></i> Search</a>
+      <a href="#" onclick="showPage('stores')"><i class="fas fa-map-marked-alt"></i> Store Map</a>
+      <span id="authLinks">
+        <a href="#" onclick="showPage('login')" class="nb nb-out">Login</a>
+        <a href="#" onclick="showPage('register')" class="nb">Register</a>
+      </span>
+      <span id="userLinks" style="display:none">
+        <a href="#" onclick="showPage('orders')"><i class="fas fa-box"></i> Orders<span id="obadge" class="badge-notif" style="display:none">!</span></a>
+        <a href="#" onclick="showPage('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <span id="uname" class="user-chip"></span>
+        <a href="#" onclick="logout()" class="nb nb-out">Logout</a>
+      </span>
+      <button class="nb nb-red emergency-pulse" onclick="toggleEmrg()" style="border:none;cursor:none;"><i class="fas fa-ambulance"></i> SOS</button>
+    </div>
   </div>
 </nav>
 
@@ -55,14 +72,14 @@
 <div id="emrgPanel" class="emrg-panel" style="display:none">
   <div class="emrg-content">
     <div class="emrg-top">
-      <h2><i class="fas fa-exclamation-triangle"></i> EMERGENCY MODE</h2>
+      <h2><i class="fas fa-exclamation-triangle"></i> Emergency Help</h2>
       <button class="btn-x" onclick="toggleEmrg()">✕</button>
     </div>
-    <p style="color:var(--muted);font-size:.88rem;margin-bottom:.5rem">Finding nearest open pharmacies instantly...</p>
+    <p style="color:var(--muted);font-size:.87rem;margin-bottom:.5rem">Immediate emergency contacts & medicine search</p>
     <div class="emrg-contacts">
       <a href="tel:108"><i class="fas fa-ambulance"></i> 108 Ambulance</a>
       <a href="tel:102"><i class="fas fa-hospital"></i> 102 Hospital</a>
-      <a href="tel:18001801104"><i class="fas fa-phone"></i> Medicine Help</a>
+      <a href="tel:18001801104"><i class="fas fa-phone"></i> Medicine Helpline</a>
     </div>
     <input class="emrg-input" id="emrgSearch" placeholder="🔍 Search medicine urgently..." oninput="emrgSearch(this.value)"/>
     <div id="emrgResults"></div>
@@ -73,47 +90,65 @@
 
   <!-- HOME -->
   <div id="page-home" class="page active">
-    <div class="hero">
-      <div class="hero-orb orb1"></div><div class="hero-orb orb2"></div>
-      <div class="hero-badge"><div class="rt-dot"></div> AI Powered · Real-Time · 50+ Medicines · Store Maps</div>
-      <h1 class="hero-title"><span class="ht1">FIND ANY MEDICINE</span><span class="ht2">COMPARE & SAVE</span></h1>
-      <p class="hero-sub">Search across 4 pharmacies, compare live prices, get AI alternatives and navigate to stores with interactive maps.</p>
-      <div class="hero-search">
-        <i class="fas fa-search hero-search-icon"></i>
-        <input id="heroIn" placeholder="Search: Paracetamol, Diabetes, Antibiotics..." oninput="heroType(this.value)" onkeypress="if(event.key==='Enter')goSearch()"/>
-        <button class="hs-btn" onclick="goSearch()">Search</button>
-      </div>
-      <div class="search-tags">
-        <span class="stag" onclick="qs('Paracetamol')">💊 Paracetamol</span>
-        <span class="stag" onclick="qs('Antibiotic')">🦠 Antibiotics</span>
-        <span class="stag" onclick="qs('Diabetes')">💉 Diabetes</span>
-        <span class="stag" onclick="qs('Vitamin')">☀️ Vitamins</span>
-        <span class="stag" onclick="qs('Blood pressure')">❤️ BP</span>
-        <span class="stag" onclick="qs('Antacid')">🫃 Antacid</span>
-        <span class="stag" onclick="qs('Allergy')">🌿 Allergy</span>
-      </div>
-      <div class="hero-stats">
-        <div class="hstat"><div class="hstat-num" data-t="50">0</div><div class="hstat-lbl">Medicines</div></div>
-        <div class="hstat"><div class="hstat-num" data-t="4">0</div><div class="hstat-lbl">Stores on Map</div></div>
-        <div class="hstat"><div class="hstat-num" data-t="30">0</div><div class="hstat-lbl">% Max Savings</div></div>
-        <div class="hstat"><div class="hstat-num" data-t="24">0</div><div class="hstat-lbl">Hours Live</div></div>
+    <div class="hero" id="heroSection">
+      <!-- 3D floating medical objects injected by JS -->
+      <div class="hero-content">
+        <div class="hero-badge"><i class="fas fa-shield-alt"></i> Trusted Medicine Platform · Hyderabad</div>
+        <h1 class="hero-title">Compare Medicine<br><span>Prices & Save</span></h1>
+        <p class="hero-sub">Search medicines across 4 trusted pharmacies in Hyderabad. Find the cheapest price, check stock in real-time, and locate stores on our interactive map.</p>
+        <div class="hero-search-wrap">
+          <i class="fas fa-search"></i>
+          <input id="heroIn" placeholder="Search medicines: Paracetamol, Diabetes, Antibiotics..." oninput="heroType(this.value)" onkeypress="if(event.key==='Enter')goSearch()"/>
+          <button class="hs-btn" onclick="goSearch()"><i class="fas fa-search"></i> Search</button>
+        </div>
+        <div class="search-tags">
+          <span class="stag" onclick="qs('Paracetamol')">💊 Paracetamol</span>
+          <span class="stag" onclick="qs('Antibiotic')">💉 Antibiotics</span>
+          <span class="stag" onclick="qs('Diabetes')">🩺 Diabetes</span>
+          <span class="stag" onclick="qs('Vitamin')">🌿 Vitamins</span>
+          <span class="stag" onclick="qs('Blood pressure')">❤️ BP Medicines</span>
+          <span class="stag" onclick="qs('Antacid')">🏥 Antacid</span>
+        </div>
+        <div class="hero-stats">
+          <div class="hstat"><div class="hstat-num" data-t="50">0</div><div class="hstat-lbl">Medicines</div></div>
+          <div class="hstat"><div class="hstat-num" data-t="4">0</div><div class="hstat-lbl">Pharmacies</div></div>
+          <div class="hstat"><div class="hstat-num" data-t="30">0</div><div class="hstat-lbl">% Max Savings</div></div>
+          <div class="hstat"><div class="hstat-num" data-t="24">0</div><div class="hstat-lbl">Hrs Live</div></div>
+        </div>
       </div>
     </div>
+
+    <!-- FEATURES STRIP -->
+    <div class="features-strip">
+      <div class="feat-item"><i class="fas fa-map-marked-alt"></i><div><strong>Interactive Map</strong><span>See all pharmacies</span></div></div>
+      <div class="feat-item"><i class="fas fa-bolt"></i><div><strong>Real-Time Stock</strong><span>Live updates</span></div></div>
+      <div class="feat-item"><i class="fas fa-tags"></i><div><strong>Price Compare</strong><span>Find cheapest</span></div></div>
+      <div class="feat-item"><i class="fas fa-robot"></i><div><strong>AI Alternatives</strong><span>Save up to 70%</span></div></div>
+      <div class="feat-item"><i class="fas fa-share-alt"></i><div><strong>Share Location</strong><span>Send to family</span></div></div>
+    </div>
+
+    <!-- CATEGORIES -->
     <div class="cats-section">
-      <div class="sec-hdr reveal"><div class="sec-tag">Browse Categories</div><h2 class="sec-title">Find by <span>Medicine Type</span></h2></div>
-      <div class="cats-grid">
-        <div class="cat-card reveal" onclick="qs('Analgesic')"><span class="cat-icon">💊</span><div class="cat-name">Pain Relief</div></div>
-        <div class="cat-card reveal" onclick="qs('Antibiotic')"><span class="cat-icon">🦠</span><div class="cat-name">Antibiotics</div></div>
-        <div class="cat-card reveal" onclick="qs('Antidiabetic')"><span class="cat-icon">💉</span><div class="cat-name">Diabetes</div></div>
-        <div class="cat-card reveal" onclick="qs('Antihypertensive')"><span class="cat-icon">❤️</span><div class="cat-name">Blood Pressure</div></div>
-        <div class="cat-card reveal" onclick="qs('Antacid')"><span class="cat-icon">🫃</span><div class="cat-name">Acidity</div></div>
-        <div class="cat-card reveal" onclick="qs('Antihistamine')"><span class="cat-icon">🌿</span><div class="cat-name">Allergy</div></div>
-        <div class="cat-card reveal" onclick="qs('Vitamin')"><span class="cat-icon">☀️</span><div class="cat-name">Vitamins</div></div>
-        <div class="cat-card reveal" onclick="qs('Antifungal')"><span class="cat-icon">🛡️</span><div class="cat-name">Skin Care</div></div>
-        <div class="cat-card reveal" onclick="qs('Respiratory')"><span class="cat-icon">🫁</span><div class="cat-name">Respiratory</div></div>
-        <div class="cat-card reveal" onclick="qs('Antihyperlipidemic')"><span class="cat-icon">🩸</span><div class="cat-name">Cholesterol</div></div>
-        <div class="cat-card reveal" onclick="qs('Antidepressant')"><span class="cat-icon">🧠</span><div class="cat-name">Mental Health</div></div>
-        <div class="cat-card reveal" onclick="qs('Cold')"><span class="cat-icon">🤧</span><div class="cat-name">Cold & Flu</div></div>
+      <div class="section-inner">
+        <div class="sec-hdr reveal">
+          <div class="sec-label">Browse Categories</div>
+          <h2 class="sec-title">Find <span>Medicine by Type</span></h2>
+          <p class="sec-sub">Click any category to instantly search all available medicines</p>
+        </div>
+        <div class="cats-grid">
+          <div class="cat-card reveal" onclick="qs('Analgesic')"><span class="cat-icon">💊</span><div class="cat-name">Pain Relief</div></div>
+          <div class="cat-card reveal" onclick="qs('Antibiotic')"><span class="cat-icon">💉</span><div class="cat-name">Antibiotics</div></div>
+          <div class="cat-card reveal" onclick="qs('Antidiabetic')"><span class="cat-icon">🩺</span><div class="cat-name">Diabetes</div></div>
+          <div class="cat-card reveal" onclick="qs('Antihypertensive')"><span class="cat-icon">❤️</span><div class="cat-name">Blood Pressure</div></div>
+          <div class="cat-card reveal" onclick="qs('Antacid')"><span class="cat-icon">🏥</span><div class="cat-name">Acidity</div></div>
+          <div class="cat-card reveal" onclick="qs('Antihistamine')"><span class="cat-icon">🌿</span><div class="cat-name">Allergy</div></div>
+          <div class="cat-card reveal" onclick="qs('Vitamin')"><span class="cat-icon">☀️</span><div class="cat-name">Vitamins</div></div>
+          <div class="cat-card reveal" onclick="qs('Antifungal')"><span class="cat-icon">🛡️</span><div class="cat-name">Skin Care</div></div>
+          <div class="cat-card reveal" onclick="qs('Respiratory')"><span class="cat-icon">🫁</span><div class="cat-name">Respiratory</div></div>
+          <div class="cat-card reveal" onclick="qs('Antihyperlipidemic')"><span class="cat-icon">🩸</span><div class="cat-name">Cholesterol</div></div>
+          <div class="cat-card reveal" onclick="qs('Antidepressant')"><span class="cat-icon">🧠</span><div class="cat-name">Mental Health</div></div>
+          <div class="cat-card reveal" onclick="qs('Cold')"><span class="cat-icon">🤧</span><div class="cat-name">Cold & Flu</div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -121,21 +156,21 @@
   <!-- SEARCH -->
   <div id="page-search" class="page">
     <div class="search-page">
-      <h2><i class="fas fa-search" style="color:var(--cyan)"></i> Search Medicines</h2>
+      <h2 class="page-title"><i class="fas fa-search"></i> Search Medicines</h2>
       <div class="search-wrap">
-        <div class="srch-bar"><i class="fas fa-search"></i><input id="mainSearch" placeholder="Name, generic name, use, category..." oninput="searchMeds(this.value)"/></div>
+        <div class="srch-bar"><i class="fas fa-search"></i><input id="mainSearch" placeholder="Medicine name, generic name, category..." oninput="searchMeds(this.value)"/></div>
         <button class="sbtn" onclick="searchMeds(document.getElementById('mainSearch').value)">Search</button>
-        <label class="upld-btn" for="prescFile"><i class="fas fa-file-medical"></i> Upload Rx</label>
+        <label class="upld-btn" for="prescFile"><i class="fas fa-file-medical"></i> Upload Prescription</label>
         <input type="file" id="prescFile" accept="image/*,.pdf" onchange="handlePresc(this)" style="display:none"/>
       </div>
       <div class="filters">
-        <span class="ftag active" onclick="filterR('all',this)">All</span>
+        <span class="ftag active" onclick="filterR('all',this)">All Medicines</span>
         <span class="ftag" onclick="filterR('otc',this)">OTC Only</span>
         <span class="ftag" onclick="filterR('rx',this)">Rx Required</span>
         <span class="ftag" onclick="filterR('avail',this)">In Stock</span>
         <span class="ftag" onclick="filterR('disc',this)">Has Discount</span>
       </div>
-      <div id="searchResults"><div class="empty-state"><i class="fas fa-pills"></i><h3>Search any medicine</h3><p>Try: Paracetamol, Aspirin, Vitamin D...</p></div></div>
+      <div id="searchResults"><div class="empty-state"><i class="fas fa-pills"></i><h3>Search any medicine above</h3><p>Try: Paracetamol, Aspirin, Vitamin D...</p></div></div>
     </div>
   </div>
 
@@ -145,15 +180,17 @@
   <!-- STORES + MAP -->
   <div id="page-stores" class="page">
     <div class="stores-page">
-      <h2><i class="fas fa-map-marked-alt" style="color:var(--cyan)"></i> Pharmacy Map <span id="scnt" class="badge bc" style="font-size:.75rem;padding:3px 10px"></span></h2>
+      <h2 class="page-title"><i class="fas fa-map-marked-alt"></i> Pharmacy Locations <span id="scnt" style="font-size:.8rem;font-weight:600;color:var(--muted);margin-left:6px"></span></h2>
       <div class="map-controls">
         <button class="my-loc-btn" onclick="getMyLoc()"><i class="fas fa-crosshairs"></i> My Location</button>
-        <button class="mc-btn active" onclick="filterMap('all',this)">All Stores</button>
-        <button class="mc-btn" onclick="filterMap('open',this)">Open Now</button>
+        <button class="mc-btn active" onclick="filterMap('all',this)"><i class="fas fa-store"></i> All Stores</button>
+        <button class="mc-btn" onclick="filterMap('open',this)"><i class="fas fa-door-open"></i> Open Now</button>
       </div>
       <div class="stores-layout">
         <div class="stores-list" id="storesList"></div>
-        <div class="map-container"><div class="map-wrap"><div id="storeMap"></div></div></div>
+        <div class="map-container">
+          <div class="map-wrap"><div id="storeMap"></div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -163,17 +200,21 @@
     <div class="auth-wrap">
       <div class="auth-card">
         <div class="auth-icon">🔐</div>
-        <h2>Welcome Back</h2><p class="auth-sub">Sign in to your MediFind account</p>
+        <h2>Welcome Back</h2>
+        <p class="auth-sub">Sign in to your MediFind account</p>
         <div id="loginErr" class="err" style="display:none"></div>
-        <div class="fg"><label>Email</label><input class="fi" type="email" id="loginEmail" placeholder="your@email.com"/></div>
-        <div class="fg"><label>Password</label><input class="fi" type="password" id="loginPass" placeholder="Password" onkeypress="if(event.key==='Enter')login()"/></div>
-        <button class="btn-full" onclick="login()">Login <i class="fas fa-arrow-right"></i></button>
-        <p class="auth-sw">No account? <a href="#" onclick="showPage('register')">Register free</a></p>
-        <div class="demo-box"><p>⚡ QUICK DEMO LOGIN</p><div class="demo-btns">
-          <button onclick="fill('admin@medicineapp.com','Admin@123')"><i class="fas fa-shield-alt"></i> Admin</button>
-          <button onclick="fill('store@medicineapp.com','Store@123')"><i class="fas fa-store"></i> Store</button>
-          <button onclick="fill('user@medicineapp.com','User@123')"><i class="fas fa-user"></i> User</button>
-        </div></div>
+        <div class="fg"><label>Email Address</label><input class="fi" type="email" id="loginEmail" placeholder="your@email.com"/></div>
+        <div class="fg"><label>Password</label><input class="fi" type="password" id="loginPass" placeholder="Your password" onkeypress="if(event.key==='Enter')login()"/></div>
+        <button class="btn-full" onclick="login()">Sign In <i class="fas fa-arrow-right"></i></button>
+        <p class="auth-sw">No account? <a href="#" onclick="showPage('register')">Register for free</a></p>
+        <div class="demo-box">
+          <p>Quick Demo Login</p>
+          <div class="demo-btns">
+            <button onclick="fill('admin@medicineapp.com','Admin@123')"><i class="fas fa-shield-alt"></i> Admin</button>
+            <button onclick="fill('store@medicineapp.com','Store@123')"><i class="fas fa-store"></i> Store</button>
+            <button onclick="fill('user@medicineapp.com','User@123')"><i class="fas fa-user"></i> User</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -183,15 +224,16 @@
     <div class="auth-wrap">
       <div class="auth-card">
         <div class="auth-icon">✨</div>
-        <h2>Create Account</h2><p class="auth-sub">Join MediFind — completely free</p>
+        <h2>Create Account</h2>
+        <p class="auth-sub">Join MediFind — completely free</p>
         <div id="regErr" class="err" style="display:none"></div>
-        <div class="fg"><label>Full Name</label><input class="fi" id="rName" placeholder="Your full name"/></div>
-        <div class="fg"><label>Email</label><input class="fi" type="email" id="rEmail" placeholder="your@email.com"/></div>
-        <div class="fg"><label>Password</label><input class="fi" type="password" id="rPass" placeholder="Strong password"/></div>
-        <div class="fg"><label>Phone</label><input class="fi" type="tel" id="rPhone" placeholder="10-digit phone"/></div>
-        <div class="fg"><label>I am a...</label><select class="fi" id="rRole"><option value="user">👤 Customer</option><option value="store">🏪 Store Owner</option></select></div>
+        <div class="fg"><label>Full Name *</label><input class="fi" id="rName" placeholder="Your full name"/></div>
+        <div class="fg"><label>Email *</label><input class="fi" type="email" id="rEmail" placeholder="your@email.com"/></div>
+        <div class="fg"><label>Password *</label><input class="fi" type="password" id="rPass" placeholder="Create strong password"/></div>
+        <div class="fg"><label>Phone</label><input class="fi" type="tel" id="rPhone" placeholder="10-digit mobile number"/></div>
+        <div class="fg"><label>I am a...</label><select class="fi" id="rRole"><option value="user">👤 Patient / Customer</option><option value="store">🏪 Pharmacy Owner</option></select></div>
         <button class="btn-full" onclick="register()">Create Account <i class="fas fa-arrow-right"></i></button>
-        <p class="auth-sw">Already registered? <a href="#" onclick="showPage('login')">Login here</a></p>
+        <p class="auth-sw">Already registered? <a href="#" onclick="showPage('login')">Sign in here</a></p>
       </div>
     </div>
   </div>
@@ -199,7 +241,7 @@
   <!-- ORDERS -->
   <div id="page-orders" class="page">
     <div class="orders-page">
-      <h2><i class="fas fa-box" style="color:var(--cyan)"></i> My Orders</h2>
+      <h2 class="page-title"><i class="fas fa-box"></i> My Orders</h2>
       <div id="ordersList"></div>
     </div>
   </div>
@@ -214,22 +256,22 @@
   <div class="chat-head" onclick="toggleChat()">
     <div style="display:flex;align-items:center;gap:10px">
       <div class="bot-av">🤖</div>
-      <div><div class="chat-name">MEDIBOT AI</div><div class="chat-status"><span class="rt-dot" style="width:5px;height:5px"></span>Online</div></div>
+      <div><div class="chat-name">MEDIBOT ASSISTANT</div><div class="chat-status"><span class="rt-dot" style="width:5px;height:5px;background:#7dd3fc"></span>Online — Ready to help</div></div>
     </div>
-    <span id="chatTgl">▲</span>
+    <span id="chatTgl" style="color:white;font-size:.8rem">▲</span>
   </div>
   <div id="chatBody" class="chat-body">
     <div id="chatMsgs" class="chat-msgs">
-      <div class="bmsg">👋 Hi! I'm <strong>MediBot AI</strong>!<br><br>• 🔍 Find medicines & prices<br>• 🗺️ Show store map<br>• 💊 Suggest alternatives<br>• ❓ Answer questions</div>
+      <div class="bmsg">👋 Hello! I'm <strong>MediBot</strong>, your medical assistant!<br><br>I can help you:<br>• 🔍 Find medicines & compare prices<br>• 🗺️ Locate pharmacies on map<br>• 💊 Suggest cheaper alternatives<br>• 📍 Share store locations</div>
     </div>
     <div class="quick-chips">
       <button onclick="qc('Find Paracetamol')">Paracetamol</button>
-      <button onclick="qc('Show store map')">Map</button>
+      <button onclick="qc('Show pharmacy map')">Store Map</button>
       <button onclick="qc('Cheap alternatives')">Alternatives</button>
-      <button onclick="qc('Emergency')">SOS</button>
+      <button onclick="qc('Emergency help')">Emergency</button>
     </div>
     <div class="chat-in">
-      <input id="chatIn" placeholder="Ask anything..." onkeypress="if(event.key==='Enter')sendMsg()"/>
+      <input id="chatIn" placeholder="Type your question..." onkeypress="if(event.key==='Enter')sendMsg()"/>
       <button onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
