@@ -110,9 +110,15 @@ function showPage(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   const el = document.getElementById('page-' + p);
   if (el) { el.classList.add('active'); window.scrollTo(0, 0); }
-  if (p === 'stores') loadStores();
+  if (p === 'stores') {
+    loadStores();
+    // Force map to recalculate size after page is visible
+    setTimeout(() => { if (storeMap) storeMap.invalidateSize(); }, 300);
+  }
   if (p === 'orders') loadOrders();
   if (p === 'dashboard') loadDashboard();
+  if (p === 'profile') setTimeout(() => loadProfile(), 100);
+  if (p === 'reminders') setTimeout(() => loadReminders(), 100);
 }
 
 // ── SEARCH ──────────────────────────────────────────────────────────────────
@@ -294,7 +300,8 @@ async function loadStores() {
     allStores = await get('/stores');
     document.getElementById('scnt').textContent = allStores.length + ' pharmacies found';
     renderStoreList(allStores);
-    initMap(allStores);
+    // Wait for DOM to paint before initializing map
+    setTimeout(() => initMap(allStores), 200);
   } catch {
     el.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Error loading stores</h3></div>`;
   }
@@ -1082,12 +1089,4 @@ function scheduleNotifications(reminders) {
   });
 }
 
-// ══════════════════════════════════════════════════════════════════
-// ── OVERRIDE showPage to load new pages ──────────────────────────
-// ══════════════════════════════════════════════════════════════════
-const _origShowPage = showPage;
-showPage = function(p) {
-  _origShowPage(p);
-  if (p === 'profile') loadProfile();
-  if (p === 'reminders') loadReminders();
-};
+// showPage override removed — merged into main showPage function above
