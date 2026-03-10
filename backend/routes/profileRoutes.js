@@ -12,7 +12,12 @@ router.get('/', authMiddleware, (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
     const { password: _, ...safeUser } = user;
     const orders = db.orders.filter(o => o.user === req.user.id);
-    res.json({ ...safeUser, totalOrders: orders.length, totalSpent: orders.reduce((s,o)=>s+(o.totalAmount||0),0) });
+    res.json({
+      ...safeUser,
+      totalOrders: orders.length,
+      totalSpent: orders.reduce((s,o)=>s+(o.totalAmount||0),0),
+      loyaltyPoints: user.loyaltyPoints || 0
+    });
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
@@ -53,7 +58,7 @@ router.put('/change-password', authMiddleware, async (req, res) => {
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-// Save medicine reminder
+// Reminders
 router.post('/reminders', authMiddleware, (req, res) => {
   try {
     const { medicineName, time, frequency, notes } = req.body;
@@ -66,16 +71,13 @@ router.post('/reminders', authMiddleware, (req, res) => {
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-// Get reminders
 router.get('/reminders', authMiddleware, (req, res) => {
   try {
     const db = readDB();
-    const reminders = (db.reminders || []).filter(r => r.userId === req.user.id);
-    res.json(reminders);
+    res.json((db.reminders || []).filter(r => r.userId === req.user.id));
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-// Delete reminder
 router.delete('/reminders/:id', authMiddleware, (req, res) => {
   try {
     const db = readDB();
@@ -86,21 +88,21 @@ router.delete('/reminders/:id', authMiddleware, (req, res) => {
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-// Save favourite medicine
+// Favourites
 router.post('/favourites', authMiddleware, (req, res) => {
   try {
     const { medicineId } = req.body;
     const db = readDB();
     if (!db.favourites) db.favourites = [];
-    const exists = db.favourites.find(f => f.userId === req.user.id && f.medicineId === medicineId);
-    if (exists) return res.status(400).json({ message: 'Already saved' });
+    if (db.favourites.find(f => f.userId === req.user.id && f.medicineId === medicineId)) {
+      return res.status(400).json({ message: 'Already saved' });
+    }
     db.favourites.push({ _id: Date.now().toString(), userId: req.user.id, medicineId, createdAt: new Date().toISOString() });
     writeDB(db);
     res.json({ message: 'Saved to favourites' });
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-// Get favourites
 router.get('/favourites', authMiddleware, (req, res) => {
   try {
     const db = readDB();
@@ -108,6 +110,30 @@ router.get('/favourites', authMiddleware, (req, res) => {
       ...f, medicine: db.medicines.find(m => m._id === f.medicineId)
     }));
     res.json(favs);
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+router.delete('/favourites/:medicineId', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    if (!db.favourites) db.favourites = [];
+    db.favourites = db.favourites.filter(f => !(f.medicineId === req.params.medicineId && f.userId === req.user.id));
+    writeDB(db);
+    res.json({ message: 'Removed from favourites' });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// Loyalty points
+router.get('/loyalty', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json({
+      points: user.loyaltyPoints || 0,
+      worth: Math.floor((user.loyaltyPoints || 0) / 100) * 10,
+      nextReward: 100 - ((user.loyaltyPoints || 0) % 100)
+    });
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
