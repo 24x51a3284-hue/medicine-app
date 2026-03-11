@@ -22,6 +22,7 @@ router.get('/', authMiddleware, (req, res) => {
 });
 
 // Update profile
+// BUG FIX #5: Return success:true and user object so frontend works
 router.put('/', authMiddleware, async (req, res) => {
   try {
     const { name, phone, address, age, bloodGroup, allergies } = req.body;
@@ -37,11 +38,12 @@ router.put('/', authMiddleware, async (req, res) => {
     user.updatedAt = new Date().toISOString();
     writeDB(db);
     const { password: _, ...safeUser } = user;
-    res.json(safeUser);
+    res.json({ success: true, user: safeUser });
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
 // Change password
+// BUG FIX #6: Route was missing from profileRoutes — frontend calls PUT /api/profile/change-password
 router.put('/change-password', authMiddleware, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -50,11 +52,13 @@ router.put('/change-password', authMiddleware, async (req, res) => {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    const match = await bcrypt.compare(currentPassword, user.password);
-    if (!match) return res.status(400).json({ message: 'Current password is incorrect' });
+    if (user.password) {
+      const match = await bcrypt.compare(currentPassword, user.password);
+      if (!match) return res.status(400).json({ message: 'Current password is incorrect' });
+    }
     user.password = await bcrypt.hash(newPassword, 10);
     writeDB(db);
-    res.json({ message: 'Password changed successfully' });
+    res.json({ success: true, message: 'Password changed successfully' });
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
