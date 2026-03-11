@@ -1,1744 +1,1434 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- saved from url=(0056)file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MediFind v5.0 — Medicine Price Comparison</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
-  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <!-- Load fonts async so they don't block page -->
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="stylesheet" href="./index_files/css2" media="all" onload="this.media=&#39;all&#39;">
+  <link rel="stylesheet" href="./index_files/all.min.css" media="all" onload="this.media=&#39;all&#39;">
+  <link rel="stylesheet" href="./index_files/leaflet.css">
+  <link rel="stylesheet" href="file:///C:/Users/naik%20fawaz/Downloads/css/style.css">
+  <script src="./index_files/socket.io.min.js.download" defer=""></script>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:"Inter",system-ui,sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh;}
-    :root{--primary:#0ea5e9;--primary-dark:#0284c7;--accent:#7c3aed;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--bg:#0a0f1e;--bg2:#111827;--bg3:#1f2937;--border:#374151;--text:#e2e8f0;--text2:#94a3b8;}
-
-    /* LOADER */
-    #loader{position:fixed;inset:0;background:#0a0f1e;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
-    .ld-cross{font-size:3rem;animation:pulse 1s infinite;}
-    .ld-logo{font-size:2rem;font-weight:900;color:#fff;}.ld-logo span{color:var(--primary);}
-    .ld-bar{width:200px;height:4px;background:#1f2937;border-radius:4px;overflow:hidden;}
-    .ld-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));animation:load 2s ease forwards;}
-    @keyframes load{from{width:0}to{width:100%}}
-    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-    .ld-txt{color:var(--text2);font-size:.85rem;letter-spacing:2px;}
-
-    /* NAV */
-    nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,15,30,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:64px;display:flex;align-items:center;}
-    .nav-inner{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:1400px;margin:0 auto;}
-    .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;font-weight:900;font-size:1.3rem;}
-    .nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-    .nav-logo span{color:var(--primary);}
-    .nav-links{display:flex;gap:4px;align-items:center;}
-    .nav-links a{color:var(--text2);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;font-weight:500;transition:all .2s;display:flex;align-items:center;gap:6px;}
-    .nav-links a:hover,.nav-links a.active{color:#fff;background:var(--bg3);}
-    .nav-actions{display:flex;gap:8px;align-items:center;}
-    .btn{padding:8px 18px;border-radius:10px;font-weight:600;font-size:.9rem;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
-    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;}
-    .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
-    .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text2);}
-    .btn-outline:hover{border-color:var(--primary);color:var(--primary);}
-    .btn-success{background:var(--success);color:#fff;}
-    .btn-danger{background:var(--danger);color:#fff;}
-    .btn-sm{padding:6px 14px;font-size:.82rem;}
-    #nav-badge{background:var(--danger);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.7rem;display:inline-flex;align-items:center;justify-content:center;margin-left:-6px;margin-top:-10px;}
-
-    /* PAGES */
-    .page{display:none;padding-top:80px;min-height:100vh;}
-    .page.active{display:block;}
-    .container{max-width:1200px;margin:0 auto;padding:24px;}
-
-    /* REAL-TIME BAR */
-    #rtbar{position:fixed;top:64px;left:0;right:0;z-index:999;background:linear-gradient(90deg,var(--success),#059669);color:#fff;padding:8px 24px;display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:500;}
-    .rt-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1s infinite;}
-    #rtbar button{margin-left:auto;background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem;}
-
-    /* CARDS */
-    .card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;}
-    .card-sm{padding:16px;border-radius:12px;}
-
-    /* HERO */
-    .hero{text-align:center;padding:60px 24px 40px;background:radial-gradient(ellipse at top,rgba(14,165,233,.15) 0%,transparent 60%);}
-    .hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:16px;}
-    .hero h1 span{background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-    .hero p{color:var(--text2);font-size:1.1rem;max-width:500px;margin:0 auto 32px;}
-    .hero-search{display:flex;gap:12px;max-width:600px;margin:0 auto;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:8px;}
-    .hero-search input{flex:1;background:none;border:none;color:#fff;font-size:1rem;padding:8px 12px;outline:none;}
-    .hero-search input::placeholder{color:var(--text2);}
-    .hero-badges{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:24px;}
-    .badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:.82rem;color:var(--text2);display:flex;align-items:center;gap:6px;}
-    .badge.new{border-color:var(--primary);color:var(--primary);}
-
-    /* STATS */
-    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;}
-    .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;align-items:center;gap:16px;}
-    .stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
-    .stat-icon.blue{background:rgba(14,165,233,.15);}
-    .stat-icon.purple{background:rgba(124,58,237,.15);}
-    .stat-icon.green{background:rgba(16,185,129,.15);}
-    .stat-icon.orange{background:rgba(245,158,11,.15);}
-    .stat-info h3{font-size:1.5rem;font-weight:700;}
-    .stat-info p{color:var(--text2);font-size:.85rem;}
-
-    /* SEARCH RESULTS */
-    .results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-    .med-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;}
-    .med-card:hover{border-color:var(--primary);transform:translateY(-2px);}
-    .med-card-header{padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;}
-    .med-name{font-weight:700;font-size:1rem;}
-    .med-category{color:var(--text2);font-size:.8rem;margin-top:2px;}
-    .med-prices{padding:12px 16px;}
-    .price-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(55,65,81,.5);}
-    .price-row:last-child{border:none;}
-    .store-name{font-size:.88rem;color:var(--text2);}
-    .price-amount{font-weight:700;color:var(--primary);}
-    .price-amount.best{color:var(--success);}
-    .stock-badge{font-size:.75rem;padding:2px 8px;border-radius:20px;}
-    .stock-badge.in{background:rgba(16,185,129,.15);color:var(--success);}
-    .stock-badge.out{background:rgba(239,68,68,.15);color:var(--danger);}
-    .stock-badge.low{background:rgba(245,158,11,.15);color:var(--warning);}
-    .med-card-footer{padding:12px 16px;display:flex;gap:8px;}
-
-    /* MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;}
-    .modal-overlay.open{display:flex;}
-    .modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
-    .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-    .modal-header h2{font-size:1.2rem;font-weight:700;}
-    .modal-close{background:none;border:none;color:var(--text2);font-size:1.3rem;cursor:pointer;}
-    .modal-body{padding:24px;}
-    .form-group{margin-bottom:16px;}
-    .form-group label{display:block;font-size:.88rem;font-weight:500;margin-bottom:6px;color:var(--text2);}
-    .form-control{width:100%;background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;color:#fff;font-size:.95rem;outline:none;transition:border .2s;}
-    .form-control:focus{border-color:var(--primary);}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-    .tab-btns{display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:20px;}
-    .tab-btn{flex:1;padding:8px;border-radius:8px;border:none;background:none;color:var(--text2);font-weight:500;font-size:.9rem;cursor:pointer;transition:all .2s;}
-    .tab-btn.active{background:var(--primary);color:#fff;}
-
-    /* CART */
-    .cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
-    .cart-item:last-child{border:none;}
-    .cart-item-info{flex:1;}
-    .cart-item-name{font-weight:600;font-size:.95rem;}
-    .cart-item-price{color:var(--text2);font-size:.85rem;}
-    .qty-ctrl{display:flex;align-items:center;gap:8px;}
-    .qty-btn{width:28px;height:28px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:#fff;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
-    .qty-btn:hover{border-color:var(--primary);}
-    .coupon-box{background:var(--bg3);border:1px dashed var(--border);border-radius:12px;padding:16px;margin:16px 0;}
-    .coupon-input{display:flex;gap:8px;}
-    .coupon-input input{flex:1;}
-    .coupon-success{color:var(--success);font-size:.85rem;margin-top:8px;display:none;}
-    .order-summary{background:var(--bg3);border-radius:12px;padding:16px;margin-top:16px;}
-    .summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:.9rem;}
-    .summary-row.total{font-weight:700;font-size:1.05rem;border-top:1px solid var(--border);margin-top:8px;padding-top:12px;}
-    .summary-row.discount{color:var(--success);}
-
-    /* ORDER TRACKING */
-    .tracking-timeline{padding:20px 0;}
-    .track-step{display:flex;gap:16px;margin-bottom:24px;position:relative;}
-    .track-step:not(:last-child)::after{content:"";position:absolute;left:19px;top:40px;bottom:-24px;width:2px;background:var(--border);}
-    .track-step.done::after{background:var(--success);}
-    .track-dot{width:40px;height:40px;border-radius:50%;border:2px solid var(--border);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;z-index:1;}
-    .track-dot.done{background:var(--success);border-color:var(--success);}
-    .track-dot.active{background:var(--primary);border-color:var(--primary);animation:pulse 1s infinite;}
-    .track-info h4{font-weight:600;margin-bottom:2px;}
-    .track-info p{color:var(--text2);font-size:.85rem;}
-
-    /* LOYALTY */
-    .loyalty-card{background:linear-gradient(135deg,#7c3aed,#0ea5e9);border-radius:16px;padding:24px;color:#fff;position:relative;overflow:hidden;}
-    .loyalty-card::before{content:"⭐";position:absolute;right:20px;top:20px;font-size:3rem;opacity:.2;}
-    .loyalty-points{font-size:2.5rem;font-weight:900;margin:8px 0;}
-    .loyalty-label{font-size:.9rem;opacity:.85;}
-    .loyalty-progress{background:rgba(255,255,255,.2);border-radius:20px;height:8px;margin-top:16px;overflow:hidden;}
-    .loyalty-bar{height:100%;background:#fff;border-radius:20px;transition:width .5s;}
-
-    /* NOTIFICATION BELL */
-    .notif-btn{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
-    .notif-btn:hover{color:#fff;border-color:var(--primary);}
-    .notif-count{position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.68rem;display:flex;align-items:center;justify-content:center;display:none;}
-    .notif-count.show{display:flex;}
-    .notif-panel{position:absolute;top:50px;right:0;width:320px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,.4);z-index:500;display:none;}
-    .notif-panel.open{display:block;}
-    .notif-panel-header{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:.95rem;}
-    .notif-item{padding:12px 16px;border-bottom:1px solid rgba(55,65,81,.5);font-size:.88rem;}
-    .notif-item:last-child{border:none;}
-    .notif-item.unread{background:rgba(14,165,233,.05);}
-    .notif-time{color:var(--text2);font-size:.78rem;margin-top:2px;}
-
-    /* OTP LOGIN */
-    .otp-inputs{display:flex;gap:10px;justify-content:center;margin:20px 0;}
-    .otp-input{width:48px;height:48px;border-radius:10px;border:2px solid var(--border);background:var(--bg3);color:#fff;font-size:1.3rem;font-weight:700;text-align:center;outline:none;transition:border .2s;}
-    .otp-input:focus{border-color:var(--primary);}
-    .otp-timer{text-align:center;color:var(--text2);font-size:.88rem;}
-    .otp-timer span{color:var(--primary);font-weight:600;}
-
-    /* MAP */
-    #map{height:400px;border-radius:14px;overflow:hidden;border:1px solid var(--border);}
-
-    /* PROFILE */
-    .profile-header{display:flex;align-items:center;gap:20px;margin-bottom:32px;}
-    .profile-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;flex-shrink:0;}
-    .profile-info h2{font-size:1.4rem;font-weight:700;}
-    .profile-info p{color:var(--text2);font-size:.9rem;}
-    .profile-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px;overflow-x:auto;}
-    .profile-tab{padding:10px 18px;border:none;background:none;color:var(--text2);font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
-    .profile-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
-
-    /* REMINDERS */
-    .reminder-card{background:var(--bg3);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-    .reminder-info h4{font-weight:600;font-size:.95rem;}
-    .reminder-info p{color:var(--text2);font-size:.82rem;margin-top:2px;}
-
-    /* MEDIBOT */
-    .bot-container{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-    .bot-header{background:linear-gradient(135deg,var(--primary),var(--accent));padding:16px 20px;display:flex;align-items:center;gap:12px;}
-    .bot-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
-    .bot-status{width:10px;height:10px;border-radius:50%;background:#4ade80;border:2px solid rgba(255,255,255,.5);}
-    .bot-messages{height:350px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;}
-    .bot-msg{max-width:80%;padding:10px 14px;border-radius:14px;font-size:.9rem;line-height:1.5;}
-    .bot-msg.bot{background:var(--bg3);border-radius:14px 14px 14px 4px;align-self:flex-start;}
-    .bot-msg.user{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:14px 14px 4px 14px;align-self:flex-end;}
-    .bot-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);}
-    .bot-input input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:#fff;outline:none;}
-    .bot-input input::placeholder{color:var(--text2);}
-
-    /* EMERGENCY SOS */
-    .sos-btn{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:50%;width:80px;height:80px;font-size:1rem;font-weight:700;cursor:pointer;animation:sosPulse 2s infinite;box-shadow:0 0 30px rgba(239,68,68,.4);}
-    @keyframes sosPulse{0%,100%{box-shadow:0 0 30px rgba(239,68,68,.4)}50%{box-shadow:0 0 60px rgba(239,68,68,.7)}}
-
-    /* TOAST */
-    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9998;display:flex;flex-direction:column;gap:10px;}
-    .toast{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:.9rem;min-width:280px;animation:slideIn .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.3);}
-    .toast.success{border-color:var(--success);}
-    .toast.error{border-color:var(--danger);}
-    .toast.info{border-color:var(--primary);}
-    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-
-    /* ADMIN */
-    .admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;}
-    .admin-stat{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;}
-    .admin-stat h3{font-size:1.8rem;font-weight:700;margin:8px 0 4px;}
-    .admin-stat p{color:var(--text2);font-size:.85rem;}
-    table{width:100%;border-collapse:collapse;}
-    th{text-align:left;padding:12px 16px;font-size:.82rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
-    td{padding:12px 16px;font-size:.9rem;border-bottom:1px solid rgba(55,65,81,.5);}
-    tr:hover td{background:rgba(255,255,255,.02);}
-    .status-badge{padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600;}
-    .status-badge.pending{background:rgba(245,158,11,.15);color:var(--warning);}
-    .status-badge.confirmed{background:rgba(14,165,233,.15);color:var(--primary);}
-    .status-badge.completed{background:rgba(16,185,129,.15);color:var(--success);}
-    .status-badge.cancelled{background:rgba(239,68,68,.15);color:var(--danger);}
-
-    /* FAVOURITES */
-    .fav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
-    .fav-card{background:var(--bg3);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;}
-
-    /* COUPON TAGS */
-    .coupon-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
-    .coupon-tag{background:var(--bg3);border:1px dashed var(--primary);border-radius:8px;padding:6px 12px;font-size:.82rem;cursor:pointer;color:var(--primary);transition:all .2s;}
-    .coupon-tag:hover{background:rgba(14,165,233,.1);}
-
-    /* SECTION HEADERS */
-    .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-    .section-title{font-size:1.3rem;font-weight:700;}
-    .section-sub{color:var(--text2);font-size:.9rem;margin-top:2px;}
-
-    /* RESPONSIVE */
-    @media(max-width:768px){
-      .nav-links{display:none;}
-      .hero h1{font-size:2rem;}
-      .results-grid{grid-template-columns:1fr;}
-      .form-row{grid-template-columns:1fr;}
+    /* Inline critical CSS — loads instantly, no external dependency */
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,system-ui,sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh}
+    :root{
+      --primary:#0ea5e9;--primary-dark:#0284c7;--secondary:#7c3aed;
+      --bg:#0a0f1e;--bg2:#0f172a;--bg3:#1e293b;
+      --border:#334155;--text:#e2e8f0;--text2:#94a3b8;
+      --success:#22c55e;--error:#ef4444;--warning:#f59e0b
     }
-
+    /* LOADER */
+    #loader{
+      position:fixed;inset:0;background:#0a0f1e;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      z-index:9999;transition:opacity 0.5s
+    }
+    .ld-logo{font-size:2.5rem;font-weight:900;color:#fff;margin-bottom:1rem}
+    .ld-logo span{color:#0ea5e9}
+    .ld-bar{width:200px;height:4px;background:#1e293b;border-radius:4px;overflow:hidden}
+    .ld-fill{height:100%;background:linear-gradient(90deg,#0ea5e9,#7c3aed);border-radius:4px;animation:ldanim 1.5s ease-in-out forwards}
+    @keyframes ldanim{0%{width:0%}100%{width:100%}}
+    .ld-txt{margin-top:1rem;color:#64748b;font-size:.875rem}
+    /* NAV */
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      background:rgba(10,15,30,0.95);backdrop-filter:blur(10px);
+      border-bottom:1px solid #1e293b;padding:.75rem 0
+    }
+    .nav-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;gap:1.5rem}
+    .nav-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+    .nav-logo-text{font-size:1.25rem;font-weight:800;color:#fff}
+    .nav-logo-text span{color:#0ea5e9}
+    .nav-links{display:flex;gap:.5rem;margin-left:auto;align-items:center;flex-wrap:wrap}
+    .nav-links a{color:#94a3b8;text-decoration:none;padding:.5rem .75rem;border-radius:.5rem;font-size:.875rem;transition:all .2s;display:flex;align-items:center;gap:.35rem}
+    .nav-links a:hover,.nav-links a.active{color:#fff;background:#1e293b}
+    .nav-btn{
+      background:linear-gradient(135deg,#0ea5e9,#7c3aed);color:#fff;
+      border:none;padding:.5rem 1rem;border-radius:.5rem;
+      font-size:.875rem;font-weight:600;cursor:pointer;transition:opacity .2s
+    }
+    .nav-btn:hover{opacity:.9}
+    /* MAIN WRAPPER */
+    #main{margin-top:60px}
+    .page{display:none;padding:2rem 1.5rem;max-width:1200px;margin:0 auto}
+    .page.active{display:block}
+    /* CARDS */
+    .card{background:#0f172a;border:1px solid #1e293b;border-radius:1rem;padding:1.5rem}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+    /* HERO */
+    .hero{
+      text-align:center;padding:4rem 1.5rem;
+      background:linear-gradient(135deg,rgba(14,165,233,.08),rgba(124,58,237,.08));
+      border-radius:1.5rem;border:1px solid #1e293b;margin-bottom:2rem
+    }
+    .hero h1{font-size:clamp(1.75rem,4vw,3rem);font-weight:900;margin-bottom:1rem}
+    .hero h1 span{color:#0ea5e9}
+    .hero p{color:#94a3b8;font-size:1.1rem;margin-bottom:2rem}
+    /* SEARCH */
+    .search-box{
+      display:flex;gap:.5rem;max-width:600px;margin:0 auto;
+      background:#1e293b;border:1px solid #334155;border-radius:.75rem;padding:.5rem
+    }
+    .search-box input{
+      flex:1;background:none;border:none;outline:none;color:#e2e8f0;
+      font-size:1rem;padding:.5rem
+    }
+    .search-box input::placeholder{color:#64748b}
+    .btn{
+      padding:.6rem 1.25rem;border-radius:.5rem;border:none;cursor:pointer;
+      font-weight:600;font-size:.875rem;transition:all .2s
+    }
+    .btn-primary{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff}
+    .btn-primary:hover{opacity:.9}
+    .btn-secondary{background:#1e293b;color:#e2e8f0;border:1px solid #334155}
+    .btn-secondary:hover{background:#334155}
+    .btn-danger{background:#ef4444;color:#fff}
+    .btn-success{background:#22c55e;color:#fff}
+    /* MEDICINE CARD */
+    .med-card{
+      background:#0f172a;border:1px solid #1e293b;border-radius:1rem;
+      padding:1.25rem;transition:all .2s;cursor:pointer
+    }
+    .med-card:hover{border-color:#0ea5e9;transform:translateY(-2px)}
+    .med-name{font-weight:700;font-size:1rem;margin-bottom:.25rem}
+    .med-generic{color:#64748b;font-size:.8rem;margin-bottom:.75rem}
+    .price-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+    .price-best{font-size:1.25rem;font-weight:800;color:#0ea5e9}
+    .price-orig{font-size:.875rem;color:#64748b;text-decoration:line-through}
+    .badge{
+      display:inline-block;padding:.2rem .6rem;border-radius:2rem;
+      font-size:.7rem;font-weight:700
+    }
+    .badge-success{background:rgba(34,197,94,.15);color:#22c55e}
+    .badge-warning{background:rgba(245,158,11,.15);color:#f59e0b}
+    .badge-error{background:rgba(239,68,68,.15);color:#ef4444}
+    .badge-primary{background:rgba(14,165,233,.15);color:#0ea5e9}
+    /* MODALS */
+    .modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.7);
+      display:none;align-items:center;justify-content:center;z-index:200;
+      padding:1rem
+    }
+    .modal.open{display:flex}
+    .modal-box{
+      background:#0f172a;border:1px solid #1e293b;border-radius:1.25rem;
+      padding:2rem;width:100%;max-width:440px;max-height:90vh;overflow-y:auto
+    }
+    .modal-title{font-size:1.25rem;font-weight:800;margin-bottom:1.5rem;text-align:center}
+    /* FORMS */
+    .form-group{margin-bottom:1rem}
+    label{display:block;font-size:.875rem;color:#94a3b8;margin-bottom:.4rem;font-weight:500}
+    input,select,textarea{
+      width:100%;padding:.625rem .875rem;background:#1e293b;
+      border:1px solid #334155;border-radius:.5rem;color:#e2e8f0;
+      font-size:.875rem;outline:none;transition:border-color .2s
+    }
+    input:focus,select:focus,textarea:focus{border-color:#0ea5e9}
+    /* TABS */
+    .tabs{display:flex;gap:.25rem;background:#1e293b;padding:.25rem;border-radius:.625rem;margin-bottom:1.5rem}
+    .tab{flex:1;padding:.5rem;border:none;background:none;color:#94a3b8;border-radius:.375rem;cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s}
+    .tab.active{background:#0f172a;color:#fff}
+    /* FEATURES GRID */
+    .features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin:2rem 0}
+    .feature-item{
+      background:#0f172a;border:1px solid #1e293b;border-radius:.75rem;padding:1rem;
+      text-align:center;transition:all .2s
+    }
+    .feature-item:hover{border-color:#0ea5e9}
+    .feature-icon{font-size:1.75rem;margin-bottom:.5rem}
+    .feature-title{font-size:.875rem;font-weight:700}
+    .feature-desc{font-size:.75rem;color:#64748b;margin-top:.25rem}
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1rem;margin:1.5rem 0}
+    .stat-box{background:#0f172a;border:1px solid #1e293b;border-radius:.75rem;padding:1rem;text-align:center}
+    .stat-val{font-size:1.75rem;font-weight:900;color:#0ea5e9}
+    .stat-lbl{font-size:.75rem;color:#64748b;margin-top:.25rem}
+    /* ORDER TRACKING */
+    .track-timeline{position:relative;padding-left:2rem}
+    .track-step{position:relative;padding-bottom:1.5rem}
+    .track-step:before{content:'';position:absolute;left:-1.375rem;top:.25rem;width:12px;height:12px;border-radius:50%;background:#1e293b;border:2px solid #334155}
+    .track-step.done:before{background:#22c55e;border-color:#22c55e}
+    .track-step.active:before{background:#0ea5e9;border-color:#0ea5e9;box-shadow:0 0 0 4px rgba(14,165,233,.2)}
+    .track-step:after{content:'';position:absolute;left:-1.125rem;top:1.25rem;width:2px;height:calc(100% - .75rem);background:#1e293b}
+    .track-step:last-child:after{display:none}
+    .track-step.done:after{background:#22c55e}
+    /* NOTIFICATION BELL */
+    .notif-badge{
+      position:absolute;top:-4px;right:-4px;background:#ef4444;
+      color:#fff;font-size:.65rem;font-weight:700;
+      width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center
+    }
+    /* LOYALTY */
+    .loyalty-card{
+      background:linear-gradient(135deg,#0ea5e9,#7c3aed);
+      border-radius:1rem;padding:1.5rem;color:#fff
+    }
+    .loyalty-points{font-size:2.5rem;font-weight:900}
+    /* COUPON */
+    .coupon-row{display:flex;gap:.5rem}
+    .coupon-row input{flex:1}
+    /* TOAST */
+    #toast{
+      position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
+      display:flex;flex-direction:column;gap:.5rem
+    }
+    .toast-item{
+      padding:.75rem 1.25rem;border-radius:.75rem;font-size:.875rem;font-weight:600;
+      animation:slideIn .3s ease;max-width:320px
+    }
+    .toast-success{background:#22c55e;color:#fff}
+    .toast-error{background:#ef4444;color:#fff}
+    .toast-info{background:#0ea5e9;color:#fff}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    /* REALTIME BAR */
+    #rtbar{
+      position:fixed;top:60px;left:0;right:0;z-index:90;
+      background:linear-gradient(90deg,#0ea5e9,#7c3aed);
+      padding:.35rem 1rem;display:flex;align-items:center;gap:.5rem;font-size:.8rem
+    }
+    .rt-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    /* STORE CARD */
+    .store-card{
+      background:#0f172a;border:1px solid #1e293b;border-radius:1rem;
+      padding:1.25rem;display:flex;align-items:center;gap:1rem
+    }
+    .store-icon{
+      width:48px;height:48px;border-radius:.75rem;
+      background:linear-gradient(135deg,#0ea5e9,#0284c7);
+      display:flex;align-items:center;justify-content:center;font-size:1.25rem;flex-shrink:0
+    }
+    /* RESPONSIVE */
+    @media(max-width:640px){
+      .nav-links{gap:.25rem}
+      .nav-links .hide-sm{display:none}
+      .hero{padding:2rem 1rem}
+      .page{padding:1rem}
+    }
+    /* MAP */
+    #map{height:400px;border-radius:1rem;border:1px solid #1e293b}
     /* SCROLLBAR */
-    ::-webkit-scrollbar{width:6px;}
-    ::-webkit-scrollbar-track{background:var(--bg);}
-    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-    ::-webkit-scrollbar-thumb:hover{background:var(--primary);}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:#0f172a}
+    ::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+    /* ADMIN PANEL */
+    .admin-table{width:100%;border-collapse:collapse}
+    .admin-table th{background:#1e293b;padding:.75rem;text-align:left;font-size:.8rem;color:#94a3b8;font-weight:600}
+    .admin-table td{padding:.75rem;border-bottom:1px solid #1e293b;font-size:.875rem}
+    /* PROFILE */
+    .profile-avatar{
+      width:80px;height:80px;border-radius:50%;
+      background:linear-gradient(135deg,#0ea5e9,#7c3aed);
+      display:flex;align-items:center;justify-content:center;
+      font-size:2rem;margin:0 auto 1rem
+    }
+    /* CART BADGE */
+    #cartCount{
+      background:#ef4444;color:#fff;font-size:.65rem;font-weight:700;
+      width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+      margin-left:.25rem
+    }
+    /* HIDE until app loaded */
+    #app{display:none}
   </style>
 </head>
 <body>
 
-<div id="loader">
-  <div class="ld-cross">⚕️</div>
-  <div class="ld-logo">Medi<span>Find</span> <span style="font-size:.6em;background:linear-gradient(135deg,#0ea5e9,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">v5.0</span></div>
+<!-- LOADER -->
+<div id="loader" style="opacity: 0; display: none;">
+  <div class="ld-logo">Medi<span>Find</span></div>
+  <div style="font-size:.875rem;color:#64748b;margin-bottom:1.5rem">Medicine Price Comparison</div>
   <div class="ld-bar"><div class="ld-fill"></div></div>
-  <div class="ld-txt" id="ldpct">LOADING v5.0...</div>
+  <div class="ld-txt" id="ldtxt">Loading MediFind v5.0...</div>
 </div>
 
-<div id="rtbar" style="display:none;">
+<!-- TOAST CONTAINER -->
+<div id="toast"></div>
+
+<!-- REALTIME BAR -->
+<div id="rtbar">
   <div class="rt-dot"></div>
-  <span id="rtmsg">Real-time stock updates active</span>
-  <button onclick="this.parentElement.style.display='none'">✕</button>
+  <span>Real-time stock updates active</span>
+  <button onclick="this.parentElement.style.display=&#39;none&#39;" style="margin-left:auto;background:none;border:none;color:#fff;cursor:pointer;font-size:1rem">✕</button>
 </div>
 
-<nav>
-  <div class="nav-inner">
-    <a href="#" class="nav-logo" onclick="showPage('home');return false;">
-      <div class="nav-logo-icon">⚕️</div>
-      <div class="nav-logo-text">Medi<span>Find</span></div>
-    </a>
-    <div class="nav-links">
-      <a href="#" onclick="showPage('home');return false;" id="nav-home"><i class="fas fa-home"></i> Home</a>
-      <a href="#" onclick="showPage('search');return false;" id="nav-search"><i class="fas fa-search"></i> Search</a>
-      <a href="#" onclick="showPage('map');return false;" id="nav-map"><i class="fas fa-map"></i> Map</a>
-      <a href="#" onclick="showPage('bot');return false;" id="nav-bot"><i class="fas fa-robot"></i> MediBot</a>
-      <a href="#" onclick="showPage('orders');return false;" id="nav-orders"><i class="fas fa-box"></i> Orders</a>
-      <a href="#" onclick="showPage('profile');return false;" id="nav-profile" style="display:none;"><i class="fas fa-user"></i> Profile</a>
-      <a href="#" onclick="showPage('admin');return false;" id="nav-admin" style="display:none;"><i class="fas fa-cog"></i> Admin</a>
-    </div>
-    <div class="nav-actions" style="position:relative;">
-      <div class="notif-btn" onclick="toggleNotifPanel()" id="notif-btn" style="display:none;">
-        <i class="fas fa-bell"></i>
-        <span class="notif-count" id="notif-count">0</span>
-        <div class="notif-panel" id="notif-panel">
-          <div class="notif-panel-header">🔔 Notifications</div>
-          <div id="notif-list"><div style="padding:16px;color:var(--text2);text-align:center;font-size:.88rem;">No notifications yet</div></div>
+<!-- APP -->
+<div id="app" style="display: block;">
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" class="nav-logo" onclick="showPage(&#39;home&#39;)">
+        <span style="font-size:1.4rem">⚕️</span>
+        <div class="nav-logo-text">Medi<span>Find</span></div>
+      </a>
+      <div class="nav-links">
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;home&#39;)" id="nav-home"><i class="fas fa-home"></i> <span class="hide-sm">Home</span></a>
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;medicines&#39;)" id="nav-medicines"><i class="fas fa-pills"></i> <span class="hide-sm">Medicines</span></a>
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;stores&#39;)" id="nav-stores"><i class="fas fa-store"></i> <span class="hide-sm">Stores</span></a>
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;map&#39;)" id="nav-map"><i class="fas fa-map-marker-alt"></i> <span class="hide-sm">Map</span></a>
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;orders&#39;)" id="nav-orders"><i class="fas fa-box"></i> <span class="hide-sm">Orders</span></a>
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;reminders&#39;)" id="nav-reminders"><i class="fas fa-bell"></i></a>
+        <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;favourites&#39;)" id="nav-favourites"><i class="fas fa-heart"></i></a>
+        <div style="position:relative">
+          <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;cart&#39;)" id="nav-cart"><i class="fas fa-shopping-cart"></i><span id="cartCount" style="display:none">0</span></a>
+        </div>
+        <div id="nav-auth">
+          <button class="nav-btn" onclick="openModal(&#39;loginModal&#39;)"><i class="fas fa-user"></i> Login</button>
+        </div>
+        <div id="nav-user" style="display:none">
+          <a href="file:///C:/Users/naik%20fawaz/Downloads/index%20(2).html#" onclick="showPage(&#39;profile&#39;)" id="nav-profile"><i class="fas fa-user-circle"></i></a>
+          <button class="btn btn-secondary" onclick="logout()" style="padding:.4rem .75rem;font-size:.8rem">Logout</button>
         </div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="showPage('cart')" id="cart-btn">
-        🛒 Cart <span id="nav-badge" style="display:none;">0</span>
-      </button>
-      <button class="btn btn-primary btn-sm" onclick="openAuthModal()" id="login-btn">Login</button>
-      <button class="btn btn-outline btn-sm" onclick="logout()" id="logout-btn" style="display:none;">Logout</button>
     </div>
-  </div>
-</nav>
+  </nav>
 
-<div id="toast-container"></div>
+  <!-- MAIN -->
+  <div id="main">
 
-<!-- AUTH MODAL -->
-<div class="modal-overlay" id="auth-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="auth-title">Welcome to MediFind v5.0</h2>
-      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="tab-btns">
-        <button class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
-        <button class="tab-btn" onclick="switchAuthTab('register')">Register</button>
-        <button class="tab-btn" onclick="switchAuthTab('otp')">📱 OTP Login</button>
-        <button class="tab-btn" onclick="switchAuthTab('forgot')">Forgot?</button>
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
+      <div class="hero">
+        <div style="font-size:3rem;margin-bottom:.5rem">⚕️</div>
+        <h1>Find <span>Cheapest</span> Medicines</h1>
+        <p>Compare prices across stores • Real-time stock • AI assistant • Emergency SOS</p>
+        <div class="search-box">
+          <i class="fas fa-search" style="color:#64748b;padding:.5rem;align-self:center"></i>
+          <input type="text" id="heroSearch" placeholder="Search medicines..." onkeypress="if(event.key===&#39;Enter&#39;)quickSearch()">
+          <button class="btn btn-primary" onclick="quickSearch()">Search</button>
+        </div>
       </div>
 
-      <!-- LOGIN -->
-      <div id="tab-login">
+      <!-- VERSION BADGES -->
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;justify-content:center">
+        <span class="badge badge-primary">v5.0 — OTP Login</span>
+        <span class="badge badge-success">Coupon Codes</span>
+        <span class="badge badge-primary">Order Tracking</span>
+        <span class="badge badge-success">Loyalty Points</span>
+        <span class="badge badge-primary">Push Notifications</span>
+        <span class="badge badge-success">AWS EC2 Live</span>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-val" id="statMeds">0</div><div class="stat-lbl">Medicines</div></div>
+        <div class="stat-box"><div class="stat-val" id="statStores">0</div><div class="stat-lbl">Stores</div></div>
+        <div class="stat-box"><div class="stat-val" id="statSavings">₹0</div><div class="stat-lbl">Avg Savings</div></div>
+        <div class="stat-box"><div class="stat-val">24/7</div><div class="stat-lbl">Live Updates</div></div>
+      </div>
+
+      <!-- FEATURES -->
+      <h2 style="font-size:1.25rem;font-weight:800;margin-bottom:1rem">✨ Features</h2>
+      <div class="features-grid">
+        <div class="feature-item" onclick="showPage(&#39;medicines&#39;)">
+          <div class="feature-icon">💊</div>
+          <div class="feature-title">Price Comparison</div>
+          <div class="feature-desc">Compare prices across all stores</div>
+        </div>
+        <div class="feature-item" onclick="showPage(&#39;map&#39;)">
+          <div class="feature-icon">🗺️</div>
+          <div class="feature-title">Live Map</div>
+          <div class="feature-desc">Uber-style routing to stores</div>
+        </div>
+        <div class="feature-item" onclick="startSOS()">
+          <div class="feature-icon">🆘</div>
+          <div class="feature-title">Emergency SOS</div>
+          <div class="feature-desc">One-click call 108/102</div>
+        </div>
+        <div class="feature-item" onclick="showPage(&#39;chat&#39;)">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-title">AI MediBot</div>
+          <div class="feature-desc">24/7 medicine assistant</div>
+        </div>
+        <div class="feature-item" onclick="showPage(&#39;reminders&#39;)">
+          <div class="feature-icon">⏰</div>
+          <div class="feature-title">Reminders</div>
+          <div class="feature-desc">Never miss a dose</div>
+        </div>
+        <div class="feature-item" onclick="showPage(&#39;orders&#39;)">
+          <div class="feature-icon">📦</div>
+          <div class="feature-title">Live Tracking</div>
+          <div class="feature-desc">Track orders in real-time</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎟️</div>
+          <div class="feature-title">Coupon Codes</div>
+          <div class="feature-desc">WELCOME10 • MEDIFIND20</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⭐</div>
+          <div class="feature-title">Loyalty Points</div>
+          <div class="feature-desc">Earn points on every order</div>
+        </div>
+      </div>
+
+      <!-- QUICK RESULTS -->
+      <div id="homeResults" style="display:none">
+        <h2 style="font-size:1.25rem;font-weight:800;margin:1.5rem 0 1rem">Search Results</h2>
+        <div class="card-grid" id="homeResultsGrid"></div>
+      </div>
+    </div>
+
+    <!-- MEDICINES PAGE -->
+    <div id="page-medicines" class="page">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <h1 style="font-size:1.5rem;font-weight:800">💊 Medicines</h1>
+        <div class="search-box" style="flex:1;min-width:200px">
+          <input type="text" id="medSearch" placeholder="Search medicines..." oninput="filterMeds()">
+          <button class="btn btn-primary" onclick="filterMeds()"><i class="fas fa-search"></i></button>
+        </div>
+        <select id="medCategory" onchange="filterMeds()" style="width:auto;padding:.5rem .875rem">
+          <option value="">All Categories</option>
+          <option>Pain Relief</option>
+          <option>Antibiotics</option>
+          <option>Vitamins</option>
+          <option>Diabetes</option>
+          <option>Heart</option>
+          <option>Antacids</option>
+        </select>
+        <button class="btn btn-secondary" onclick="sortBy(&#39;price&#39;)" id="sortPriceBtn">↕ Price</button>
+      </div>
+      <div class="card-grid" id="medsGrid"><div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">Failed to load medicines</div></div>
+    </div>
+
+    <!-- STORES PAGE -->
+    <div id="page-stores" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">🏪 Nearby Stores</h1>
+      <div class="card-grid" id="storesGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">Loading stores...</div>
+      </div>
+    </div>
+
+    <!-- MAP PAGE -->
+    <div id="page-map" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1rem">🗺️ Live Map</h1>
+      <p style="color:#64748b;margin-bottom:1rem">Find nearest pharmacies with real-time routing</p>
+      <div id="map"></div>
+    </div>
+
+    <!-- ORDERS PAGE -->
+    <div id="page-orders" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">📦 My Orders</h1>
+      <div id="ordersContainer">
+        <div style="text-align:center;padding:3rem;color:#64748b">
+          <div style="font-size:3rem;margin-bottom:1rem">📦</div>
+          <p>Login to see your orders</p>
+          <button class="btn btn-primary" onclick="openModal(&#39;loginModal&#39;)" style="margin-top:1rem">Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CART PAGE -->
+    <div id="page-cart" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">🛒 Cart</h1>
+      <div id="cartContainer"><div style="text-align:center;padding:3rem;color:#64748b"><div style="font-size:3rem;margin-bottom:1rem">🛒</div><p>Your cart is empty</p><button class="btn btn-primary" onclick="showPage(&#39;medicines&#39;)" style="margin-top:1rem">Browse Medicines</button></div></div>
+    </div>
+
+    <!-- REMINDERS PAGE -->
+    <div id="page-reminders" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">⏰ Medicine Reminders</h1>
+      <div class="card" style="margin-bottom:1.5rem">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:1rem">Add Reminder</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:.75rem;align-items:end">
+          <div class="form-group" style="margin:0">
+            <label>Medicine Name</label>
+            <input type="text" id="remMed" placeholder="e.g. Paracetamol">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Time</label>
+            <input type="time" id="remTime">
+          </div>
+          <button class="btn btn-primary" onclick="addReminder()">Add</button>
+        </div>
+      </div>
+      <div id="remindersList"><div style="text-align:center;padding:2rem;color:#64748b">No reminders set</div></div>
+    </div>
+
+    <!-- FAVOURITES PAGE -->
+    <div id="page-favourites" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">❤️ Favourites</h1>
+      <div class="card-grid" id="favsGrid">
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">No favourites yet</div>
+      </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="page-profile" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">👤 Profile</h1>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="card">
+          <div class="profile-avatar" id="profileAvatar">👤</div>
+          <div id="profileInfo" style="text-align:center">
+            <p style="font-weight:700;font-size:1.1rem" id="profileName">-</p>
+            <p style="color:#64748b;font-size:.875rem" id="profileEmail">-</p>
+            <span class="badge badge-primary" id="profileRole">-</span>
+          </div>
+          <div style="margin-top:1.5rem">
+            <div class="form-group"><label>Full Name</label><input type="text" id="editName"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="editPhone"></div>
+            <div class="form-group"><label>Address</label><input type="text" id="editAddress"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="saveProfile()">Save Changes</button>
+          </div>
+        </div>
+        <div>
+          <div class="loyalty-card" style="margin-bottom:1rem">
+            <div style="font-size:.875rem;opacity:.8;margin-bottom:.25rem">⭐ Loyalty Points</div>
+            <div class="loyalty-points" id="loyaltyPoints">0</div>
+            <div style="font-size:.875rem;opacity:.8;margin-top:.25rem">points earned</div>
+          </div>
+          <div class="card">
+            <h3 style="font-weight:700;margin-bottom:1rem">🔒 Change Password</h3>
+            <div class="form-group"><label>Current Password</label><input type="password" id="pwCurrent"></div>
+            <div class="form-group"><label>New Password</label><input type="password" id="pwNew"></div>
+            <div class="form-group"><label>Confirm Password</label><input type="password" id="pwConfirm"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="changePassword()">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI CHAT PAGE -->
+    <div id="page-chat" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">🤖 AI MediBot</h1>
+      <div class="card" style="height:60vh;display:flex;flex-direction:column">
+        <div id="chatMsgs" style="flex:1;overflow-y:auto;padding:.5rem;display:flex;flex-direction:column;gap:.75rem">
+          <div style="background:#1e293b;padding:.75rem 1rem;border-radius:.75rem;max-width:80%;align-self:flex-start">
+            <p style="font-size:.875rem">👋 Hi! I'm MediBot. Ask me anything about medicines, dosages, side effects, or drug interactions!</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;padding-top:.75rem;border-top:1px solid #1e293b;margin-top:.75rem">
+          <input type="text" id="chatInput" placeholder="Ask about medicines..." onkeypress="if(event.key===&#39;Enter&#39;)sendChat()" style="flex:1">
+          <button class="btn btn-primary" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN PAGE -->
+    <div id="page-admin" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">⚙️ Admin Panel</h1>
+      <div class="tabs">
+        <button class="tab active" onclick="adminTab(&#39;overview&#39;,this)">Overview</button>
+        <button class="tab" onclick="adminTab(&#39;medicines&#39;,this)">Medicines</button>
+        <button class="tab" onclick="adminTab(&#39;users&#39;,this)">Users</button>
+        <button class="tab" onclick="adminTab(&#39;orders&#39;,this)">Orders</button>
+      </div>
+      <div id="adminContent">Loading...</div>
+    </div>
+
+    <!-- STORE OWNER PAGE -->
+    <div id="page-store-owner" class="page">
+      <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">🏪 Store Dashboard</h1>
+      <div id="storeOwnerContent">Loading...</div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Welcome to MediFind</div>
+    <div class="tabs">
+      <button class="tab active" onclick="authTab(&#39;login&#39;,this)" id="tabLogin">Login</button>
+      <button class="tab" onclick="authTab(&#39;register&#39;,this)" id="tabRegister">Register</button>
+      <button class="tab" onclick="authTab(&#39;otp&#39;,this)" id="tabOTP">OTP Login</button>
+      <button class="tab" onclick="authTab(&#39;forgot&#39;,this)" id="tabForgot">Forgot?</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="authLogin">
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="password" onkeypress="if(event.key===&#39;Enter&#39;)doLogin()"></div>
+      <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="doLogin()">Login</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="authRegister" style="display:none">
+      <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="Your name"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="your@email.com"></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="regPhone" placeholder="10-digit mobile"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="min 6 chars"></div>
+      <div class="form-group">
+        <label>Role</label>
+        <select id="regRole">
+          <option value="customer">Customer</option>
+          <option value="store_owner">Store Owner</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="doRegister()">Create Account</button>
+    </div>
+
+    <!-- OTP LOGIN -->
+    <div id="authOTP" style="display:none">
+      <p style="color:#94a3b8;font-size:.875rem;margin-bottom:1rem;text-align:center">Login with your phone number using OTP</p>
+      <div id="otpStep1">
+        <div class="form-group"><label>Phone Number</label><input type="text" id="otpPhone" placeholder="10-digit mobile number"></div>
+        <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="sendOTP()">Send OTP</button>
+      </div>
+      <div id="otpStep2" style="display:none">
         <div class="form-group">
-          <label>Email</label>
-          <input type="email" class="form-control" id="login-email" placeholder="your@email.com"/>
+          <label>Enter OTP sent to your phone</label>
+          <input type="text" id="otpCode" placeholder="6-digit OTP" maxlength="6">
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" class="form-control" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
-        </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="doLogin()">
-          <i class="fas fa-sign-in-alt"></i> Login
-        </button>
-        <div style="margin-top:12px;text-align:center;">
-          <button class="btn btn-outline" style="width:100%;justify-content:center;" onclick="googleLogin()">
-            <i class="fab fa-google"></i> Continue with Google
-          </button>
-        </div>
-        <p style="text-align:center;color:var(--text2);font-size:.85rem;margin-top:16px;">Demo: admin@medifind.com / admin123</p>
-      </div>
-
-      <!-- REGISTER -->
-      <div id="tab-register" style="display:none;">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" class="form-control" id="reg-name" placeholder="Your Name"/>
-          </div>
-          <div class="form-group">
-            <label>Phone</label>
-            <input type="tel" class="form-control" id="reg-phone" placeholder="+91 XXXXX XXXXX"/>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" class="form-control" id="reg-email" placeholder="your@email.com"/>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" class="form-control" id="reg-pass" placeholder="Min 6 characters"/>
-        </div>
-        <div class="form-group">
-          <label>Role</label>
-          <select class="form-control" id="reg-role">
-            <option value="user">User (Customer)</option>
-            <option value="store">Store Owner</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="doRegister()">
-          <i class="fas fa-user-plus"></i> Create Account
-        </button>
-      </div>
-
-      <!-- OTP LOGIN -->
-      <div id="tab-otp" style="display:none;">
-        <div id="otp-step1">
-          <p style="color:var(--text2);font-size:.9rem;margin-bottom:16px;">Enter your phone number to receive an OTP</p>
-          <div class="form-group">
-            <label>Phone Number</label>
-            <input type="tel" class="form-control" id="otp-phone" placeholder="+91 XXXXXXXXXX"/>
-          </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="sendOTP()">
-            <i class="fas fa-paper-plane"></i> Send OTP
-          </button>
-          <p style="color:var(--text2);font-size:.82rem;margin-top:12px;text-align:center;">Demo: Any phone number works. OTP will be shown below.</p>
-        </div>
-        <div id="otp-step2" style="display:none;">
-          <p style="color:var(--text2);font-size:.9rem;margin-bottom:8px;text-align:center;">Enter the 6-digit OTP sent to your phone</p>
-          <p style="color:var(--primary);font-weight:600;text-align:center;margin-bottom:16px;" id="demo-otp-display"></p>
-          <div class="otp-inputs">
-            <input type="text" class="otp-input" maxlength="1" id="otp0" oninput="otpNext(0)"/>
-            <input type="text" class="otp-input" maxlength="1" id="otp1" oninput="otpNext(1)"/>
-            <input type="text" class="otp-input" maxlength="1" id="otp2" oninput="otpNext(2)"/>
-            <input type="text" class="otp-input" maxlength="1" id="otp3" oninput="otpNext(3)"/>
-            <input type="text" class="otp-input" maxlength="1" id="otp4" oninput="otpNext(4)"/>
-            <input type="text" class="otp-input" maxlength="1" id="otp5" oninput="otpNext(5)"/>
-          </div>
-          <div class="otp-timer">Resend OTP in <span id="otp-timer-val">60</span>s</div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px;" onclick="verifyOTP()">
-            <i class="fas fa-check"></i> Verify OTP
-          </button>
-        </div>
-      </div>
-
-      <!-- FORGOT PASSWORD -->
-      <div id="tab-forgot" style="display:none;">
-        <div id="forgot-step1">
-          <p style="color:var(--text2);font-size:.9rem;margin-bottom:16px;">Enter your email to receive a reset OTP</p>
-          <div class="form-group">
-            <label>Email Address</label>
-            <input type="email" class="form-control" id="forgot-email" placeholder="your@email.com"/>
-          </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="sendForgotOTP()">
-            <i class="fas fa-envelope"></i> Send Reset OTP
-          </button>
-        </div>
-        <div id="forgot-step2" style="display:none;">
-          <div class="form-group">
-            <label>OTP Code</label>
-            <input type="text" class="form-control" id="forgot-otp" placeholder="6-digit OTP"/>
-          </div>
-          <div class="form-group">
-            <label>New Password</label>
-            <input type="password" class="form-control" id="forgot-new-pass" placeholder="New password"/>
-          </div>
-          <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="resetPassword()">
-            <i class="fas fa-lock"></i> Reset Password
-          </button>
-        </div>
+        <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="verifyOTP()">Verify &amp; Login</button>
+        <button class="btn btn-secondary" style="width:100%;padding:.75rem;margin-top:.5rem" onclick="document.getElementById(&#39;otpStep2&#39;).style.display=&#39;none&#39;;document.getElementById(&#39;otpStep1&#39;).style.display=&#39;block&#39;">← Back</button>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- CART MODAL -->
-<div class="modal-overlay" id="cart-modal">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header">
-      <h2>🛒 Your Cart</h2>
-      <button class="modal-close" onclick="closeModal('cart-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="cart-items-list"></div>
-      <div class="coupon-box">
-        <div style="font-weight:600;margin-bottom:10px;">🎟️ Apply Coupon</div>
-        <div class="coupon-input">
-          <input type="text" class="form-control" id="coupon-input" placeholder="Enter coupon code" style="text-transform:uppercase;"/>
-          <button class="btn btn-primary btn-sm" onclick="applyCoupon()">Apply</button>
-        </div>
-        <div class="coupon-tags">
-          <span class="coupon-tag" onclick="document.getElementById('coupon-input').value='WELCOME'">WELCOME ₹25</span>
-          <span class="coupon-tag" onclick="document.getElementById('coupon-input').value='MEDIFIND10'">MEDIFIND10 10%</span>
-          <span class="coupon-tag" onclick="document.getElementById('coupon-input').value='FIRST20'">FIRST20 20%</span>
-          <span class="coupon-tag" onclick="document.getElementById('coupon-input').value='SAVE50'">SAVE50 ₹50</span>
-          <span class="coupon-tag" onclick="document.getElementById('coupon-input').value='HEALTH30'">HEALTH30 30%</span>
-        </div>
-        <div class="coupon-success" id="coupon-success">✅ Coupon applied!</div>
+    <!-- FORGOT PASSWORD -->
+    <div id="authForgot" style="display:none">
+      <div id="forgotStep1">
+        <div class="form-group"><label>Email Address</label><input type="email" id="forgotEmail" placeholder="your@email.com"></div>
+        <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="sendForgotOTP()">Send Reset OTP</button>
       </div>
-      <div class="order-summary">
-        <div class="summary-row"><span>Subtotal</span><span id="cart-subtotal">₹0</span></div>
-        <div class="summary-row discount" id="discount-row" style="display:none;"><span>Discount</span><span id="cart-discount">-₹0</span></div>
-        <div class="summary-row"><span>Delivery</span><span style="color:var(--success);">Free</span></div>
-        <div class="summary-row total"><span>Total</span><span id="cart-total">₹0</span></div>
-      </div>
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
-        <div class="form-group">
-          <label>Payment Method</label>
-          <select class="form-control" id="payment-method">
-            <option value="cash">💵 Cash on Delivery</option>
-            <option value="card">💳 Card (Demo)</option>
-            <option value="upi">📱 UPI (Demo)</option>
-            <option value="razorpay">🏦 Razorpay</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;" onclick="placeOrder()">
-          <i class="fas fa-check-circle"></i> Place Order
-        </button>
+      <div id="forgotStep2" style="display:none">
+        <div class="form-group"><label>OTP from Email</label><input type="text" id="forgotOTP" placeholder="6-digit code" maxlength="6"></div>
+        <div class="form-group"><label>New Password</label><input type="password" id="forgotNewPass" placeholder="min 6 chars"></div>
+        <button class="btn btn-primary" style="width:100%;padding:.75rem" onclick="resetPassword()">Reset Password</button>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ORDER TRACKING MODAL -->
-<div class="modal-overlay" id="tracking-modal">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-header">
-      <h2>📦 Order Tracking</h2>
-      <button class="modal-close" onclick="closeModal('tracking-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="tracking-content"></div>
-    </div>
+    <button onclick="closeModal(&#39;loginModal&#39;)" style="width:100%;background:none;border:none;color:#64748b;margin-top:1rem;cursor:pointer;font-size:.875rem">Cancel</button>
   </div>
 </div>
 
 <!-- MEDICINE DETAIL MODAL -->
-<div class="modal-overlay" id="med-modal">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-header">
-      <h2 id="med-modal-name">Medicine Details</h2>
-      <button class="modal-close" onclick="closeModal('med-modal')">✕</button>
-    </div>
-    <div class="modal-body" id="med-modal-body"></div>
+<div id="medModal" class="modal">
+  <div class="modal-box" style="max-width:560px">
+    <div id="medModalContent"></div>
+    <button onclick="closeModal(&#39;medModal&#39;)" style="width:100%;background:none;border:none;color:#64748b;margin-top:1rem;cursor:pointer">Close</button>
   </div>
 </div>
 
-<!-- ==================== HOME PAGE ==================== -->
-<div id="page-home" class="page active">
-  <div class="hero">
-    <div class="badge new" style="margin:0 auto 16px;width:fit-content;"><i class="fas fa-star"></i> v5.0 — New Features!</div>
-    <h1>Find <span>Medicines</span><br/>at Best Prices</h1>
-    <p>Compare prices across 4 stores, track orders live, earn loyalty points & more!</p>
-    <div class="hero-search">
-      <i class="fas fa-search" style="color:var(--text2);padding-left:8px;"></i>
-      <input type="text" id="home-search" placeholder="Search medicine (e.g. Paracetamol, Ibuprofen...)"/>
-      <button class="btn btn-primary" onclick="doSearch()">Search</button>
-    </div>
-    <div class="hero-badges">
-      <span class="badge"><i class="fas fa-tag"></i> Price Comparison</span>
-      <span class="badge new"><i class="fas fa-mobile-alt"></i> OTP Login</span>
-      <span class="badge new"><i class="fas fa-ticket-alt"></i> Coupon Codes</span>
-      <span class="badge new"><i class="fas fa-map-marker-alt"></i> Live Tracking</span>
-      <span class="badge new"><i class="fas fa-star"></i> Loyalty Points</span>
-      <span class="badge new"><i class="fas fa-bell"></i> Notifications</span>
-    </div>
-  </div>
-
-  <div class="container">
-    <div class="stats-grid" id="home-stats">
-      <div class="stat-card">
-        <div class="stat-icon blue">💊</div>
-        <div class="stat-info"><h3 id="stat-meds">0</h3><p>Medicines</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon purple">🏪</div>
-        <div class="stat-info"><h3 id="stat-stores">0</h3><p>Stores</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green">📦</div>
-        <div class="stat-info"><h3 id="stat-orders">0</h3><p>Orders Today</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon orange">👥</div>
-        <div class="stat-info"><h3 id="stat-users">0</h3><p>Users</p></div>
-      </div>
-    </div>
-
-    <!-- NEW FEATURES SHOWCASE -->
-    <div class="card" style="margin-bottom:24px;background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(124,58,237,.1));border-color:rgba(14,165,233,.3);">
-      <h3 style="margin-bottom:16px;">🆕 What's New in v5.0</h3>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:1.5rem;">📱</span>
-          <div><div style="font-weight:600;font-size:.9rem;">OTP Phone Login</div><div style="color:var(--text2);font-size:.8rem;">Login with your phone number</div></div>
-        </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:1.5rem;">🎟️</span>
-          <div><div style="font-weight:600;font-size:.9rem;">Coupon Codes</div><div style="color:var(--text2);font-size:.8rem;">Save up to 30% on orders</div></div>
-        </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:1.5rem;">📍</span>
-          <div><div style="font-weight:600;font-size:.9rem;">Live Order Tracking</div><div style="color:var(--text2);font-size:.8rem;">Track your order in real-time</div></div>
-        </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:1.5rem;">⭐</span>
-          <div><div style="font-weight:600;font-size:.9rem;">Loyalty Points</div><div style="color:var(--text2);font-size:.8rem;">Earn 1pt per ₹10 spent</div></div>
-        </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:1.5rem;">🔔</span>
-          <div><div style="font-weight:600;font-size:.9rem;">Push Notifications</div><div style="color:var(--text2);font-size:.8rem;">Real-time order updates</div></div>
-        </div>
-        <div style="background:var(--bg3);border-radius:10px;padding:14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:1.5rem;">🧾</span>
-          <div><div style="font-weight:600;font-size:.9rem;">Invoice Generation</div><div style="color:var(--text2);font-size:.8rem;">Download order invoices</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- QUICK SEARCH -->
-    <div class="section-header">
-      <div><div class="section-title">Popular Medicines</div><div class="section-sub">Click to search quickly</div></div>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;" id="quick-meds"></div>
-
-    <!-- SOS -->
-    <div class="card" style="text-align:center;margin-bottom:24px;">
-      <h3 style="margin-bottom:8px;">🆘 Emergency SOS</h3>
-      <p style="color:var(--text2);font-size:.9rem;margin-bottom:20px;">Click in case of medical emergency</p>
-      <button class="sos-btn" onclick="triggerSOS()">SOS</button>
-      <p style="color:var(--text2);font-size:.8rem;margin-top:12px;">Calls 108 (Ambulance) | 102 (EMRI)</p>
-    </div>
+<!-- ORDER TRACKING MODAL -->
+<div id="trackModal" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">📦 Order Tracking</div>
+    <div id="trackContent"></div>
+    <button onclick="closeModal(&#39;trackModal&#39;)" style="width:100%;background:none;border:none;color:#64748b;margin-top:1rem;cursor:pointer">Close</button>
   </div>
 </div>
 
-<!-- ==================== SEARCH PAGE ==================== -->
-<div id="page-search" class="page">
-  <div class="container">
-    <div class="section-header">
-      <div><div class="section-title">Search Medicines</div><div class="section-sub">Compare prices across all stores</div></div>
+<!-- SOS MODAL -->
+<div id="sosModal" class="modal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:3rem;margin-bottom:1rem">🆘</div>
+    <div class="modal-title" style="color:#ef4444">Emergency SOS</div>
+    <p style="color:#94a3b8;margin-bottom:1.5rem">Select emergency service to call</p>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <a href="tel:108" class="btn btn-danger" style="display:block;padding:1rem;font-size:1.1rem;text-decoration:none">🚑 Ambulance — 108</a>
+      <a href="tel:102" class="btn" style="display:block;padding:1rem;font-size:1.1rem;background:#f59e0b;color:#fff;text-decoration:none">🤱 Maternity — 102</a>
+      <a href="tel:112" class="btn btn-secondary" style="display:block;padding:1rem;font-size:1.1rem;text-decoration:none">🆘 Emergency — 112</a>
     </div>
-    <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
-      <input type="text" class="form-control" id="search-input" placeholder="Search medicines..." style="flex:1;min-width:200px;" onkeydown="if(event.key==='Enter')doSearch()"/>
-      <select class="form-control" id="filter-category" style="width:180px;" onchange="doSearch()">
-        <option value="">All Categories</option>
-        <option value="pain">Pain Relief</option>
-        <option value="antibiotic">Antibiotics</option>
-        <option value="vitamin">Vitamins</option>
-        <option value="digestive">Digestive</option>
-        <option value="cardiac">Cardiac</option>
-        <option value="diabetes">Diabetes</option>
-      </select>
-      <button class="btn btn-primary" onclick="doSearch()"><i class="fas fa-search"></i> Search</button>
-    </div>
-    <div id="search-results" class="results-grid">
-      <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text2);">
-        <i class="fas fa-search" style="font-size:3rem;margin-bottom:16px;display:block;"></i>
-        Search for medicines above to compare prices
-      </div>
-    </div>
+    <button onclick="closeModal(&#39;sosModal&#39;)" style="width:100%;background:none;border:none;color:#64748b;margin-top:1rem;cursor:pointer">Cancel</button>
   </div>
 </div>
 
-<!-- ==================== MAP PAGE ==================== -->
-<div id="page-map" class="page">
-  <div class="container">
-    <div class="section-header">
-      <div><div class="section-title">📍 Store Locator</div><div class="section-sub">Find nearby pharmacies</div></div>
-    </div>
-    <div id="map"></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px;" id="store-cards"></div>
-  </div>
-</div>
+<!-- LEAFLET MAP JS -->
+<script src="./index_files/leaflet.js.download"></script>
+<script src="./index_files/leaflet-routing-machine.min.js.download"></script>
 
-<!-- ==================== MEDIBOT PAGE ==================== -->
-<div id="page-bot" class="page">
-  <div class="container" style="max-width:700px;">
-    <div class="section-header">
-      <div><div class="section-title">🤖 MediBot AI Assistant</div><div class="section-sub">Ask anything about medicines</div></div>
-    </div>
-    <div class="bot-container">
-      <div class="bot-header">
-        <div class="bot-avatar">🤖</div>
-        <div>
-          <div style="font-weight:700;">MediBot v5.0</div>
-          <div style="font-size:.82rem;opacity:.8;display:flex;align-items:center;gap:6px;"><div class="bot-status"></div> Online</div>
-        </div>
-      </div>
-      <div class="bot-messages" id="bot-messages">
-        <div class="bot-msg bot">👋 Hi! I'm MediBot v5.0! I can help you with medicine information, side effects, dosage, drug interactions, and more. What would you like to know?</div>
-      </div>
-      <div class="bot-input">
-        <input type="text" id="bot-input" placeholder="Ask about any medicine..." onkeydown="if(event.key==='Enter')sendBotMsg()"/>
-        <button class="btn btn-primary btn-sm" onclick="sendBotMsg()"><i class="fas fa-paper-plane"></i></button>
-      </div>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;">
-      <button class="btn btn-outline btn-sm" onclick="botQuick('What are the side effects of Paracetamol?')">Side effects of Paracetamol</button>
-      <button class="btn btn-outline btn-sm" onclick="botQuick('What is the dosage for Ibuprofen?')">Ibuprofen dosage</button>
-      <button class="btn btn-outline btn-sm" onclick="botQuick('Can I take Aspirin with blood thinners?')">Drug interactions</button>
-      <button class="btn btn-outline btn-sm" onclick="botQuick('What medicines help with fever?')">Medicines for fever</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== ORDERS PAGE ==================== -->
-<div id="page-orders" class="page">
-  <div class="container">
-    <div class="section-header">
-      <div><div class="section-title">📦 My Orders</div><div class="section-sub">Track your order history</div></div>
-    </div>
-    <div id="orders-list">
-      <div style="text-align:center;padding:60px;color:var(--text2);">
-        <i class="fas fa-box" style="font-size:3rem;margin-bottom:16px;display:block;"></i>
-        No orders yet. <a href="#" onclick="showPage('search');return false;" style="color:var(--primary);">Shop now</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== CART PAGE ==================== -->
-<div id="page-cart" class="page">
-  <div class="container" style="max-width:600px;">
-    <div class="section-header">
-      <div><div class="section-title">🛒 Shopping Cart</div></div>
-      <button class="btn btn-outline btn-sm" onclick="clearCart()">Clear Cart</button>
-    </div>
-    <div id="cart-page-content"></div>
-  </div>
-</div>
-
-<!-- ==================== PROFILE PAGE ==================== -->
-<div id="page-profile" class="page">
-  <div class="container">
-    <div class="profile-header">
-      <div class="profile-avatar" id="profile-avatar">U</div>
-      <div class="profile-info">
-        <h2 id="profile-name">User</h2>
-        <p id="profile-email">user@email.com</p>
-        <p id="profile-role" style="color:var(--primary);font-size:.85rem;font-weight:600;margin-top:4px;"></p>
-      </div>
-    </div>
-
-    <!-- LOYALTY CARD -->
-    <div class="loyalty-card" style="margin-bottom:24px;" id="loyalty-section">
-      <div class="loyalty-label">⭐ Loyalty Points</div>
-      <div class="loyalty-points" id="loyalty-points">0</div>
-      <div style="font-size:.85rem;opacity:.85;" id="loyalty-value">= ₹0 discount available</div>
-      <div class="loyalty-progress">
-        <div class="loyalty-bar" id="loyalty-bar" style="width:0%"></div>
-      </div>
-      <div style="font-size:.78rem;opacity:.7;margin-top:6px;" id="loyalty-next">Earn <span id="pts-needed">100</span> more points for ₹10 discount</div>
-    </div>
-
-    <div class="profile-tabs">
-      <button class="profile-tab active" onclick="switchProfileTab('info')">👤 Info</button>
-      <button class="profile-tab" onclick="switchProfileTab('orders')">📦 Orders</button>
-      <button class="profile-tab" onclick="switchProfileTab('favourites')">❤️ Favourites</button>
-      <button class="profile-tab" onclick="switchProfileTab('reminders')">⏰ Reminders</button>
-      <button class="profile-tab" onclick="switchProfileTab('security')">🔒 Security</button>
-    </div>
-
-    <!-- INFO TAB -->
-    <div id="ptab-info">
-      <div class="card">
-        <h3 style="margin-bottom:16px;">Personal Information</h3>
-        <div class="form-row">
-          <div class="form-group"><label>Full Name</label><input type="text" class="form-control" id="p-name"/></div>
-          <div class="form-group"><label>Phone</label><input type="text" class="form-control" id="p-phone"/></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Age</label><input type="number" class="form-control" id="p-age"/></div>
-          <div class="form-group"><label>Blood Group</label>
-            <select class="form-control" id="p-blood">
-              <option value="">Select</option>
-              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-              <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group"><label>Address</label><input type="text" class="form-control" id="p-address"/></div>
-        <div class="form-group"><label>Known Allergies</label><input type="text" class="form-control" id="p-allergies" placeholder="e.g. Penicillin, Aspirin"/></div>
-        <button class="btn btn-primary" onclick="saveProfile()"><i class="fas fa-save"></i> Save Changes</button>
-      </div>
-    </div>
-
-    <!-- ORDERS TAB -->
-    <div id="ptab-orders" style="display:none;">
-      <div id="profile-orders-list"></div>
-    </div>
-
-    <!-- FAVOURITES TAB -->
-    <div id="ptab-favourites" style="display:none;">
-      <div class="fav-grid" id="fav-list">
-        <div style="color:var(--text2);text-align:center;padding:40px;grid-column:1/-1;">No favourites yet</div>
-      </div>
-    </div>
-
-    <!-- REMINDERS TAB -->
-    <div id="ptab-reminders" style="display:none;">
-      <div class="card" style="margin-bottom:16px;">
-        <h3 style="margin-bottom:16px;">Add Medicine Reminder</h3>
-        <div class="form-row">
-          <div class="form-group"><label>Medicine Name</label><input type="text" class="form-control" id="rem-name" placeholder="e.g. Metformin 500mg"/></div>
-          <div class="form-group"><label>Time</label><input type="time" class="form-control" id="rem-time"/></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>Frequency</label>
-            <select class="form-control" id="rem-freq">
-              <option>Daily</option><option>Weekly</option><option>Twice Daily</option><option>As Needed</option>
-            </select>
-          </div>
-          <div class="form-group"><label>Notes</label><input type="text" class="form-control" id="rem-notes" placeholder="Optional"/></div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addReminder()"><i class="fas fa-plus"></i> Add Reminder</button>
-      </div>
-      <div id="reminders-list"></div>
-    </div>
-
-    <!-- SECURITY TAB -->
-    <div id="ptab-security" style="display:none;">
-      <div class="card">
-        <h3 style="margin-bottom:16px;">Change Password</h3>
-        <div class="form-group"><label>Current Password</label><input type="password" class="form-control" id="cur-pass"/></div>
-        <div class="form-group"><label>New Password</label><input type="password" class="form-control" id="new-pass"/></div>
-        <div class="form-group"><label>Confirm Password</label><input type="password" class="form-control" id="conf-pass"/></div>
-        <button class="btn btn-primary" onclick="changePassword()"><i class="fas fa-lock"></i> Change Password</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== ADMIN PAGE ==================== -->
-<div id="page-admin" class="page">
-  <div class="container">
-    <div class="section-header">
-      <div><div class="section-title">⚙️ Admin Dashboard</div></div>
-    </div>
-    <div class="admin-grid" id="admin-stats"></div>
-    <div class="profile-tabs">
-      <button class="profile-tab active" onclick="switchAdminTab('orders')">📦 Orders</button>
-      <button class="profile-tab" onclick="switchAdminTab('inventory')">💊 Inventory</button>
-      <button class="profile-tab" onclick="switchAdminTab('users')">👥 Users</button>
-    </div>
-    <div id="admin-tab-content"></div>
-  </div>
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 <script>
-const API = '';
-let token = localStorage.getItem('token');
-let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
-let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-let cartStore = localStorage.getItem('cartStore') || null;
-let socket = null;
-let map = null;
-let appliedCoupon = null;
-let notifications = [];
-let demoOTP = null;
-let otpTimerInterval = null;
+// ===================== STATE =====================
+let user = null;
+let token = localStorage.getItem('mf_token');
+let medicines = [];
+let stores = [];
+let cart = JSON.parse(localStorage.getItem('mf_cart') || '[]');
+let favourites = JSON.parse(localStorage.getItem('mf_favs') || '[]');
+let reminders = JSON.parse(localStorage.getItem('mf_reminders') || '[]');
+let sortOrder = 'asc';
+let mapInst = null;
 
-// ============ INIT ============
-window.addEventListener('load', () => {
+const API = '';  // same origin
+
+// ===================== INIT =====================
+window.addEventListener('load', async () => {
+  // Hide loader after 1.5s (CSS animation finishes)
   setTimeout(() => {
     document.getElementById('loader').style.opacity = '0';
-    setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-    initSocket();
-    loadHomeStats();
-    loadQuickMeds();
-    updateNavAuth();
-    updateCartBadge();
-  }, 2000);
+    setTimeout(() => {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }, 500);
+  }, 1500);
+
+  // Init socket
+  try {
+    const socket = io();
+    socket.on('stock-update', () => loadMedicines());
+  } catch(e) {}
+
+  // Load data
+  await Promise.all([loadMedicines(), loadStores()]);
+  updateCartUI();
+  renderReminders();
+
+  // Auth check
+  if (token) {
+    await checkAuth();
+  }
 });
 
-function initSocket() {
+// ===================== API HELPERS =====================
+async function api(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: {'Content-Type':'application/json'}
+  };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  return res.json();
+}
+
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast-item toast-${type}`;
+  el.textContent = msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ===================== AUTH =====================
+async function checkAuth() {
   try {
-    socket = io();
-    socket.on('connect', () => {
-      document.getElementById('rtbar').style.display = 'flex';
-    });
-    socket.on('stock-updated', (data) => {
-      document.getElementById('rtmsg').textContent = '📦 Stock updated in real-time';
-      addNotification('Stock Update', 'Medicine stock has been updated', 'info');
-    });
-    socket.on('order-status-updated', (data) => {
-      if (currentUser && data.userId === currentUser.id) {
-        showToast('📦 Order status updated: ' + data.status, 'info');
-        addNotification('Order Update', 'Your order status: ' + data.status, 'success');
-        loadOrders();
-      }
-    });
-    socket.on('order-placed', () => {
-      if (currentUser?.role === 'store' || currentUser?.role === 'admin') {
-        showToast('🔔 New order received!', 'info');
-        addNotification('New Order', 'A new order has been placed', 'info');
-      }
-    });
+    const data = await api('/api/auth/me');
+    if (data.user) {
+      user = data.user;
+      onLogin();
+    } else {
+      token = null;
+      localStorage.removeItem('mf_token');
+    }
   } catch(e) {}
 }
 
-// ============ AUTH ============
-function openAuthModal() { openModal('auth-modal'); }
+function onLogin() {
+  document.getElementById('nav-auth').style.display = 'none';
+  document.getElementById('nav-user').style.display = 'flex';
+  document.getElementById('profileName').textContent = user.name;
+  document.getElementById('profileEmail').textContent = user.email;
+  document.getElementById('profileRole').textContent = user.role;
+  document.getElementById('editName').value = user.name || '';
+  document.getElementById('editPhone').value = user.phone || '';
+  document.getElementById('editAddress').value = user.address || '';
+  document.getElementById('profileAvatar').textContent = user.name ? user.name[0].toUpperCase() : '👤';
+  document.getElementById('loyaltyPoints').textContent = user.loyaltyPoints || 0;
 
-function switchAuthTab(tab) {
-  ['login','register','otp','forgot'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['login','register','otp','forgot'][i] === tab);
-  });
+  // Show role-specific nav
+  if (user.role === 'admin') {
+    // Add admin link if not present
+    if (!document.getElementById('nav-admin')) {
+      const a = document.createElement('a');
+      a.href = '#'; a.id = 'nav-admin';
+      a.innerHTML = '<i class="fas fa-cog"></i>';
+      a.onclick = () => showPage('admin');
+      document.getElementById('nav-links').appendChild(a);
+    }
+  }
+  loadOrders();
 }
 
 async function doLogin() {
-  const email = document.getElementById('login-email').value;
-  const password = document.getElementById('login-pass').value;
-  if (!email || !password) return showToast('Please fill all fields', 'error');
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) return toast('Fill all fields', 'error');
   try {
-    const res = await fetch(API + '/api/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({email, password})
-    });
-    const data = await res.json();
-    if (!res.ok) return showToast(data.message || 'Login failed', 'error');
-    setAuth(data.token, data.user);
-    closeModal('auth-modal');
-    showToast('Welcome back, ' + data.user.name + '! 👋', 'success');
-  } catch(e) { showToast('Connection error', 'error'); }
+    const data = await api('/api/auth/login', 'POST', {email, password: pass});
+    if (data.token) {
+      token = data.token;
+      localStorage.setItem('mf_token', token);
+      user = data.user;
+      onLogin();
+      closeModal('loginModal');
+      toast('Welcome back, ' + user.name + '!', 'success');
+    } else {
+      toast(data.message || 'Login failed', 'error');
+    }
+  } catch(e) { toast('Login error', 'error'); }
 }
 
 async function doRegister() {
-  const name = document.getElementById('reg-name').value;
-  const email = document.getElementById('reg-email').value;
-  const password = document.getElementById('reg-pass').value;
-  const phone = document.getElementById('reg-phone').value;
-  const role = document.getElementById('reg-role').value;
-  if (!name || !email || !password) return showToast('Please fill required fields', 'error');
+  const name = document.getElementById('regName').value;
+  const email = document.getElementById('regEmail').value;
+  const phone = document.getElementById('regPhone').value;
+  const pass = document.getElementById('regPass').value;
+  const role = document.getElementById('regRole').value;
+  if (!name || !email || !pass) return toast('Fill all fields', 'error');
   try {
-    const res = await fetch(API + '/api/auth/register', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name, email, password, phone, role})
-    });
-    const data = await res.json();
-    if (!res.ok) return showToast(data.message || 'Registration failed', 'error');
-    setAuth(data.token, data.user);
-    closeModal('auth-modal');
-    showToast('Account created! Welcome ' + data.user.name + '! 🎉', 'success');
-  } catch(e) { showToast('Connection error', 'error'); }
+    const data = await api('/api/auth/register', 'POST', {name, email, phone, password: pass, role});
+    if (data.token) {
+      token = data.token;
+      localStorage.setItem('mf_token', token);
+      user = data.user;
+      onLogin();
+      closeModal('loginModal');
+      toast('Account created! Welcome ' + user.name + '!', 'success');
+    } else {
+      toast(data.message || 'Register failed', 'error');
+    }
+  } catch(e) { toast('Register error', 'error'); }
 }
 
-function sendOTP() {
-  const phone = document.getElementById('otp-phone').value;
-  if (!phone) return showToast('Please enter phone number', 'error');
-  // Demo OTP
-  demoOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  document.getElementById('otp-step1').style.display = 'none';
-  document.getElementById('otp-step2').style.display = 'block';
-  document.getElementById('demo-otp-display').textContent = '🔑 Demo OTP: ' + demoOTP;
-  showToast('OTP sent! (Demo: ' + demoOTP + ')', 'success');
-  startOTPTimer();
+async function sendOTP() {
+  const phone = document.getElementById('otpPhone').value;
+  if (!phone) return toast('Enter phone number', 'error');
+  try {
+    const data = await api('/api/otp/send', 'POST', {phone});
+    if (data.success) {
+      document.getElementById('otpStep1').style.display = 'none';
+      document.getElementById('otpStep2').style.display = 'block';
+      toast('OTP sent! (Demo: check console)', 'success');
+    } else {
+      toast(data.message || 'Failed to send OTP', 'error');
+    }
+  } catch(e) { toast('OTP error', 'error'); }
 }
 
-function startOTPTimer() {
-  let seconds = 60;
-  otpTimerInterval = setInterval(() => {
-    seconds--;
-    document.getElementById('otp-timer-val').textContent = seconds;
-    if (seconds <= 0) { clearInterval(otpTimerInterval); }
-  }, 1000);
+async function verifyOTP() {
+  const phone = document.getElementById('otpPhone').value;
+  const otp = document.getElementById('otpCode').value;
+  if (!otp) return toast('Enter OTP', 'error');
+  try {
+    const data = await api('/api/otp/verify', 'POST', {phone, otp});
+    if (data.token) {
+      token = data.token;
+      localStorage.setItem('mf_token', token);
+      user = data.user;
+      onLogin();
+      closeModal('loginModal');
+      toast('Logged in via OTP!', 'success');
+    } else {
+      toast(data.message || 'Invalid OTP', 'error');
+    }
+  } catch(e) { toast('OTP verify error', 'error'); }
 }
 
-function otpNext(idx) {
-  const val = document.getElementById('otp' + idx).value;
-  if (val && idx < 5) document.getElementById('otp' + (idx+1)).focus();
+async function sendForgotOTP() {
+  const email = document.getElementById('forgotEmail').value;
+  if (!email) return toast('Enter email', 'error');
+  try {
+    const data = await api('/api/auth/forgot-password', 'POST', {email});
+    if (data.success) {
+      document.getElementById('forgotStep1').style.display = 'none';
+      document.getElementById('forgotStep2').style.display = 'block';
+      toast('OTP sent to email!', 'success');
+    } else {
+      toast(data.message || 'Email not found', 'error');
+    }
+  } catch(e) { toast('Error sending OTP', 'error'); }
 }
 
-function verifyOTP() {
-  const entered = [0,1,2,3,4,5].map(i => document.getElementById('otp'+i).value).join('');
-  if (entered === demoOTP) {
-    // Demo login with OTP
-    const demoUser = { id: 'otp-user-' + Date.now(), name: 'OTP User', email: 'otp@demo.com', role: 'user' };
-    const demoToken = 'demo-otp-token-' + Date.now();
-    setAuth(demoToken, demoUser);
-    closeModal('auth-modal');
-    showToast('OTP verified! Logged in successfully! 📱', 'success');
-  } else {
-    showToast('Invalid OTP. Please try again.', 'error');
-  }
-}
-
-function sendForgotOTP() {
-  const email = document.getElementById('forgot-email').value;
-  if (!email) return showToast('Please enter email', 'error');
-  document.getElementById('forgot-step1').style.display = 'none';
-  document.getElementById('forgot-step2').style.display = 'block';
-  showToast('Reset OTP sent to ' + email + ' (Demo: 123456)', 'info');
-}
-
-function resetPassword() {
-  const otp = document.getElementById('forgot-otp').value;
-  const newPass = document.getElementById('forgot-new-pass').value;
-  if (!otp || !newPass) return showToast('Fill all fields', 'error');
-  showToast('Password reset successful! Please login.', 'success');
-  switchAuthTab('login');
-  document.getElementById('forgot-step1').style.display = 'block';
-  document.getElementById('forgot-step2').style.display = 'none';
-}
-
-function googleLogin() {
-  showToast('Google OAuth — Add GOOGLE_CLIENT_ID to .env to enable', 'info');
-}
-
-function setAuth(t, user) {
-  token = t;
-  currentUser = user;
-  localStorage.setItem('token', t);
-  localStorage.setItem('user', JSON.stringify(user));
-  updateNavAuth();
-}
-
-function updateNavAuth() {
-  const loggedIn = !!token && !!currentUser;
-  document.getElementById('login-btn').style.display = loggedIn ? 'none' : 'block';
-  document.getElementById('logout-btn').style.display = loggedIn ? 'block' : 'none';
-  document.getElementById('nav-profile').style.display = loggedIn ? 'flex' : 'none';
-  document.getElementById('notif-btn').style.display = loggedIn ? 'flex' : 'none';
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'store';
-  document.getElementById('nav-admin').style.display = isAdmin ? 'flex' : 'none';
-  if (loggedIn) loadProfile();
+async function resetPassword() {
+  const email = document.getElementById('forgotEmail').value;
+  const otp = document.getElementById('forgotOTP').value;
+  const newPass = document.getElementById('forgotNewPass').value;
+  if (!otp || !newPass) return toast('Fill all fields', 'error');
+  try {
+    const data = await api('/api/auth/reset-password', 'POST', {email, otp, newPassword: newPass});
+    if (data.success) {
+      toast('Password reset! Please login.', 'success');
+      authTab('login', document.getElementById('tabLogin'));
+    } else {
+      toast(data.message || 'Invalid OTP', 'error');
+    }
+  } catch(e) { toast('Reset error', 'error'); }
 }
 
 function logout() {
-  token = null; currentUser = null;
-  localStorage.removeItem('token'); localStorage.removeItem('user');
-  updateNavAuth();
-  showToast('Logged out successfully', 'info');
+  token = null;
+  user = null;
+  localStorage.removeItem('mf_token');
+  document.getElementById('nav-auth').style.display = 'block';
+  document.getElementById('nav-user').style.display = 'none';
   showPage('home');
+  toast('Logged out', 'info');
 }
 
-// ============ SEARCH ============
-async function doSearch() {
-  const q = document.getElementById('home-search')?.value || document.getElementById('search-input').value;
-  if (!q.trim()) return showToast('Please enter a search term', 'error');
-  document.getElementById('search-input').value = q;
-  showPage('search');
-  document.getElementById('search-results').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2);"><i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:12px;display:block;"></i>Searching...</div>';
+// ===================== MEDICINES =====================
+async function loadMedicines() {
   try {
-    const res = await fetch(API + '/api/medicines/compare?name=' + encodeURIComponent(q));
-    const data = await res.json();
-    renderSearchResults(data, q);
+    const data = await api('/api/medicines');
+    medicines = Array.isArray(data) ? data : (data.medicines || []);
+    renderMeds(medicines);
+    document.getElementById('statMeds').textContent = medicines.length;
+    // Calculate avg savings
+    const savings = medicines.reduce((sum, m) => {
+      const prices = Object.values(m.stores || {}).map(s => s.price).filter(Boolean);
+      if (prices.length > 1) return sum + (Math.max(...prices) - Math.min(...prices));
+      return sum;
+    }, 0);
+    if (medicines.length) document.getElementById('statSavings').textContent = '₹' + Math.round(savings / medicines.length);
   } catch(e) {
-    document.getElementById('search-results').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--danger);">Search failed. Please try again.</div>';
+    document.getElementById('medsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">Failed to load medicines</div>';
   }
 }
 
-function renderSearchResults(data, q) {
-  const el = document.getElementById('search-results');
-  if (!data.medicines || data.medicines.length === 0) {
-    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text2);"><i class="fas fa-pills" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No medicines found for "' + q + '"</div>';
+function renderMeds(list) {
+  const grid = document.getElementById('medsGrid');
+  if (!list.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">No medicines found</div>';
     return;
   }
-  el.innerHTML = data.medicines.map(med => {
-    const prices = med.stores || [];
-    const bestPrice = prices.length ? Math.min(...prices.map(s => s.price)) : 0;
-    return `
-    <div class="med-card">
-      <div class="med-card-header">
-        <div>
-          <div class="med-name">${med.name}</div>
-          <div class="med-category">${med.category || 'General'} · ${med.manufacturer || ''}</div>
-        </div>
-        <button onclick="saveFavourite('${med._id}')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;" title="Save to favourites">❤️</button>
+  grid.innerHTML = list.map(m => medCard(m)).join('');
+}
+
+function medCard(m) {
+  const storeEntries = Object.entries(m.stores || {});
+  const prices = storeEntries.map(([,s]) => s.price).filter(Boolean);
+  const minPrice = prices.length ? Math.min(...prices) : 0;
+  const maxPrice = prices.length ? Math.max(...prices) : 0;
+  const saving = maxPrice - minPrice;
+  const isFav = favourites.some(f => f._id === m._id);
+  const bestStore = storeEntries.find(([,s]) => s.price === minPrice);
+
+  return `<div class="med-card" onclick="showMedDetail('${m._id}')">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.5rem">
+      <div>
+        <div class="med-name">${m.name}</div>
+        <div class="med-generic">${m.genericName || ''} • ${m.category || ''}</div>
       </div>
-      <div class="med-prices">
-        ${prices.map(s => `
-          <div class="price-row">
-            <div>
-              <div class="store-name">${s.storeName}</div>
-              <span class="stock-badge ${s.stock > 10 ? 'in' : s.stock > 0 ? 'low' : 'out'}">${s.stock > 10 ? 'In Stock' : s.stock > 0 ? 'Low Stock ('+s.stock+')' : 'Out of Stock'}</span>
-            </div>
-            <div style="text-align:right;">
-              ${s.discount ? '<div style="font-size:.78rem;color:var(--text2);text-decoration:line-through;">₹'+s.originalPrice+'</div>' : ''}
-              <div class="price-amount ${s.price === bestPrice ? 'best' : ''}">₹${s.price} ${s.price === bestPrice ? '✓ Best' : ''}</div>
-              ${s.discount ? '<div style="font-size:.75rem;color:var(--success);">-'+s.discount+'% off</div>' : ''}
-            </div>
-          </div>
-        `).join('')}
-        ${prices.length === 0 ? '<div style="color:var(--text2);text-align:center;padding:12px;">Not available in any store</div>' : ''}
-      </div>
-      <div class="med-card-footer">
-        <button class="btn btn-outline btn-sm" onclick="showMedDetail('${med._id}')"><i class="fas fa-info-circle"></i> Details</button>
-        ${prices.find(s => s.stock > 0) ? `<button class="btn btn-primary btn-sm" onclick="addToCart('${med._id}','${med.name}',${bestPrice},'${prices.find(s=>s.stock>0)?.storeId}','${prices.find(s=>s.stock>0)?.storeName}')"><i class="fas fa-cart-plus"></i> Add to Cart</button>` : '<button class="btn btn-sm" style="background:var(--bg3);color:var(--text2);" disabled>Out of Stock</button>'}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ============ MEDICINE DETAIL ============
-async function showMedDetail(id) {
-  try {
-    const res = await fetch(API + '/api/medicines/' + id + '/fda');
-    const data = await res.json();
-    document.getElementById('med-modal-name').textContent = data.name || 'Medicine Details';
-    document.getElementById('med-modal-body').innerHTML = `
-      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-        ${data.category ? '<span class="badge">' + data.category + '</span>' : ''}
-        ${data.manufacturer ? '<span class="badge">' + data.manufacturer + '</span>' : ''}
-        ${data.requiresPrescription ? '<span class="badge" style="border-color:var(--warning);color:var(--warning);">Rx Required</span>' : ''}
-      </div>
-      ${data.description ? '<p style="color:var(--text2);margin-bottom:16px;">' + data.description + '</p>' : ''}
-      ${data.fdaIndications ? '<div class="card card-sm" style="margin-bottom:12px;"><b>Uses:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaIndications.substring(0,300) + '...</p></div>' : ''}
-      ${data.fdaSideEffects ? '<div class="card card-sm" style="margin-bottom:12px;background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.2);"><b>⚠️ Side Effects:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaSideEffects.substring(0,300) + '...</p></div>' : ''}
-      ${data.fdaDosage ? '<div class="card card-sm" style="margin-bottom:12px;"><b>Dosage:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaDosage.substring(0,300) + '...</p></div>' : ''}
-      ${data.fdaWarnings ? '<div class="card card-sm" style="background:rgba(245,158,11,.05);border-color:rgba(245,158,11,.2);"><b>🔔 Warnings:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaWarnings.substring(0,300) + '...</p></div>' : ''}
-    `;
-    openModal('med-modal');
-  } catch(e) { showToast('Could not load medicine details', 'error'); }
-}
-
-// ============ CART ============
-function addToCart(medId, name, price, storeId, storeName) {
-  if (!token) { openAuthModal(); return showToast('Please login to add to cart', 'info'); }
-  if (cartStore && cartStore !== storeId) {
-    if (!confirm('Your cart has items from a different store. Clear cart and add this item?')) return;
-    cart = []; cartStore = null;
-  }
-  cartStore = storeId;
-  const existing = cart.find(i => i.medId === medId);
-  if (existing) { existing.qty++; }
-  else { cart.push({medId, name, price, storeId, storeName, qty:1}); }
-  localStorage.setItem('cart', JSON.stringify(cart));
-  localStorage.setItem('cartStore', cartStore);
-  updateCartBadge();
-  showToast(name + ' added to cart! 🛒', 'success');
-}
-
-function updateCartBadge() {
-  const total = cart.reduce((s,i) => s + i.qty, 0);
-  const badge = document.getElementById('nav-badge');
-  if (total > 0) { badge.style.display = 'flex'; badge.textContent = total; }
-  else { badge.style.display = 'none'; }
-}
-
-function showPage(page) {
-  if (page === 'cart') { openCartModal(); return; }
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const el = document.getElementById('page-' + page);
-  if (el) { el.classList.add('active'); }
-  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-  const navEl = document.getElementById('nav-' + page);
-  if (navEl) navEl.classList.add('active');
-  if (page === 'map') initMap();
-  if (page === 'orders') loadOrders();
-  if (page === 'profile') { loadProfile(); loadFavourites(); loadReminders(); loadProfileOrders(); }
-  if (page === 'admin') loadAdmin();
-  window.scrollTo(0,0);
-}
-
-function openCartModal() {
-  renderCartModal();
-  openModal('cart-modal');
-}
-
-function renderCartModal() {
-  const el = document.getElementById('cart-items-list');
-  if (cart.length === 0) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">Cart is empty</div>'; }
-  else {
-    el.innerHTML = cart.map((item,i) => `
-      <div class="cart-item">
-        <div class="cart-item-info">
-          <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-price">₹${item.price} × ${item.qty} = ₹${(item.price * item.qty).toFixed(2)}</div>
-          <div style="font-size:.78rem;color:var(--text2);">${item.storeName}</div>
-        </div>
-        <div class="qty-ctrl">
-          <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
-          <span>${item.qty}</span>
-          <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
-          <button class="qty-btn" onclick="removeCartItem(${i})" style="color:var(--danger);">🗑</button>
-        </div>
-      </div>`).join('');
-  }
-  updateCartTotals();
-}
-
-function changeQty(i, delta) {
-  cart[i].qty += delta;
-  if (cart[i].qty <= 0) cart.splice(i, 1);
-  localStorage.setItem('cart', JSON.stringify(cart));
-  updateCartBadge();
-  renderCartModal();
-}
-
-function removeCartItem(i) {
-  cart.splice(i, 1);
-  if (cart.length === 0) { cartStore = null; localStorage.removeItem('cartStore'); }
-  localStorage.setItem('cart', JSON.stringify(cart));
-  updateCartBadge();
-  renderCartModal();
-}
-
-function clearCart() {
-  cart = []; cartStore = null;
-  localStorage.setItem('cart', '[]');
-  localStorage.removeItem('cartStore');
-  updateCartBadge();
-  renderCartModal();
-}
-
-function updateCartTotals() {
-  const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-  let discount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.type === 'flat') discount = appliedCoupon.value;
-    else discount = subtotal * appliedCoupon.value / 100;
-    discount = Math.min(discount, subtotal);
-  }
-  const total = Math.max(0, subtotal - discount);
-  document.getElementById('cart-subtotal').textContent = '₹' + subtotal.toFixed(2);
-  document.getElementById('cart-total').textContent = '₹' + total.toFixed(2);
-  if (discount > 0) {
-    document.getElementById('discount-row').style.display = 'flex';
-    document.getElementById('cart-discount').textContent = '-₹' + discount.toFixed(2);
-  }
-}
-
-function applyCoupon() {
-  const code = document.getElementById('coupon-input').value.trim().toUpperCase();
-  const coupons = {
-    'WELCOME': {type:'flat', value:25, desc:'₹25 flat discount'},
-    'MEDIFIND10': {type:'percent', value:10, desc:'10% discount'},
-    'FIRST20': {type:'percent', value:20, desc:'20% discount'},
-    'SAVE50': {type:'flat', value:50, desc:'₹50 flat discount'},
-    'HEALTH30': {type:'percent', value:30, desc:'30% discount'},
-  };
-  if (coupons[code]) {
-    appliedCoupon = coupons[code];
-    document.getElementById('coupon-success').style.display = 'block';
-    document.getElementById('coupon-success').textContent = '✅ ' + coupons[code].desc + ' applied!';
-    updateCartTotals();
-    showToast('Coupon ' + code + ' applied! ' + coupons[code].desc, 'success');
-  } else {
-    showToast('Invalid coupon code', 'error');
-  }
-}
-
-async function placeOrder() {
-  if (!token) { closeModal('cart-modal'); openAuthModal(); return; }
-  if (cart.length === 0) return showToast('Cart is empty', 'error');
-  const paymentMethod = document.getElementById('payment-method').value;
-  const subtotal = cart.reduce((s,i) => s + i.price * i.qty, 0);
-  let discount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.type === 'flat') discount = appliedCoupon.value;
-    else discount = subtotal * appliedCoupon.value / 100;
-  }
-  try {
-    const res = await fetch(API + '/api/orders', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({
-        store: cartStore,
-        items: cart.map(i => ({medicine: i.medId, quantity: i.qty})),
-        paymentMethod,
-        coupon: appliedCoupon ? document.getElementById('coupon-input').value.toUpperCase() : null,
-        discount
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) return showToast(data.message || 'Order failed', 'error');
-    cart = []; cartStore = null; appliedCoupon = null;
-    localStorage.setItem('cart', '[]');
-    localStorage.removeItem('cartStore');
-    updateCartBadge();
-    closeModal('cart-modal');
-    showToast('🎉 Order placed successfully! Order #' + data._id?.slice(-6), 'success');
-    addNotification('Order Placed', 'Your order #' + data._id?.slice(-6) + ' has been placed!', 'success');
-    // Show loyalty points earned
-    const pts = Math.floor((subtotal - discount) / 10);
-    if (pts > 0) setTimeout(() => showToast('⭐ You earned ' + pts + ' loyalty points!', 'info'), 2000);
-    showPage('orders');
-  } catch(e) { showToast('Connection error', 'error'); }
-}
-
-// ============ ORDERS ============
-async function loadOrders() {
-  if (!token) { document.getElementById('orders-list').innerHTML = '<div style="text-align:center;padding:60px;color:var(--text2);">Please <a href="#" onclick="openAuthModal();return false;" style="color:var(--primary);">login</a> to view orders</div>'; return; }
-  try {
-    const res = await fetch(API + '/api/orders/my-orders', {headers:{'Authorization':'Bearer '+token}});
-    const orders = await res.json();
-    const el = document.getElementById('orders-list');
-    if (!orders.length) { el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text2);"><i class="fas fa-box" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No orders yet</div>'; return; }
-    el.innerHTML = orders.map(o => `
-      <div class="card" style="margin-bottom:16px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-          <div>
-            <div style="font-weight:700;">Order #${o._id?.slice(-6)}</div>
-            <div style="color:var(--text2);font-size:.85rem;">${new Date(o.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-            <div style="color:var(--text2);font-size:.85rem;margin-top:2px;">${o.store?.name || 'Pharmacy'}</div>
-          </div>
-          <div style="text-align:right;">
-            <span class="status-badge ${o.status}">${o.status}</span>
-            <div style="font-weight:700;font-size:1.1rem;margin-top:4px;">₹${o.totalAmount?.toFixed(2)}</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn btn-outline btn-sm" onclick="showTracking('${o._id}','${o.status}')"><i class="fas fa-map-marker-alt"></i> Track Order</button>
-          <button class="btn btn-outline btn-sm" onclick="downloadInvoice('${o._id}')"><i class="fas fa-file-invoice"></i> Invoice</button>
-        </div>
-      </div>`).join('');
-  } catch(e) { console.log(e); }
-}
-
-function showTracking(orderId, status) {
-  const steps = [
-    {label:'Order Placed', icon:'📋', desc:'Your order has been received', statuses:['pending','confirmed','processing','out_for_delivery','delivered']},
-    {label:'Confirmed', icon:'✅', desc:'Order confirmed by pharmacy', statuses:['confirmed','processing','out_for_delivery','delivered']},
-    {label:'Processing', icon:'⚗️', desc:'Medicines being packed', statuses:['processing','out_for_delivery','delivered']},
-    {label:'Out for Delivery', icon:'🚴', desc:'On the way to you', statuses:['out_for_delivery','delivered']},
-    {label:'Delivered', icon:'🎉', desc:'Order delivered successfully', statuses:['delivered']},
-  ];
-  const statusOrder = ['pending','confirmed','processing','out_for_delivery','delivered'];
-  const currentIdx = statusOrder.indexOf(status);
-  document.getElementById('tracking-content').innerHTML = `
-    <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:10px;display:flex;justify-content:space-between;">
-      <span style="font-weight:600;">Order #${orderId.slice(-6)}</span>
-      <span class="status-badge ${status}">${status.replace(/_/g,' ')}</span>
+      <button onclick="event.stopPropagation();toggleFav('${m._id}')" style="background:none;border:none;font-size:1.2rem;cursor:pointer">
+        ${isFav ? '❤️' : '🤍'}
+      </button>
     </div>
-    <div class="tracking-timeline">
-      ${steps.map((step,i) => {
-        const done = i <= currentIdx;
-        const active = i === currentIdx;
-        return `<div class="track-step ${done ? 'done' : ''}">
-          <div class="track-dot ${active ? 'active' : done ? 'done' : ''}">${step.icon}</div>
-          <div class="track-info">
-            <h4 style="color:${done ? '#fff' : 'var(--text2)'}">${step.label}</h4>
-            <p>${step.desc}</p>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
-  openModal('tracking-modal');
+    <div class="price-row">
+      <span class="price-best">₹${minPrice}</span>
+      ${maxPrice > minPrice ? `<span class="price-orig">₹${maxPrice}</span>` : ''}
+      ${saving > 0 ? `<span class="badge badge-success">Save ₹${saving}</span>` : ''}
+    </div>
+    ${bestStore ? `<div style="font-size:.75rem;color:#64748b;margin-bottom:.75rem">Best at: ${bestStore[0]}</div>` : ''}
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+      ${m.prescription ? '<span class="badge badge-warning">Rx Required</span>' : '<span class="badge badge-success">OTC</span>'}
+      ${storeEntries.some(([,s]) => s.stock > 0) ? '<span class="badge badge-success">In Stock</span>' : '<span class="badge badge-error">Out of Stock</span>'}
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="btn btn-primary" style="flex:1;padding:.5rem" onclick="event.stopPropagation();addToCart('${m._id}')">
+        <i class="fas fa-cart-plus"></i> Add
+      </button>
+      <button class="btn btn-secondary" style="padding:.5rem .75rem" onclick="event.stopPropagation();showMedDetail('${m._id}')">
+        <i class="fas fa-info-circle"></i>
+      </button>
+    </div>
+  </div>`;
 }
 
-function downloadInvoice(orderId) {
-  showToast('Invoice for #' + orderId.slice(-6) + ' — Feature active! Connect MongoDB for full invoice.', 'info');
-}
-
-// ============ MAP ============
-function initMap() {
-  if (map) return;
-  const stores = [
-    {name:'MediCare Plus', lat:15.5658, lng:78.4797, address:'Main Road, Nandyal'},
-    {name:'Apollo Pharmacy', lat:15.5698, lng:78.4837, address:'Station Road, Nandyal'},
-    {name:'LifeCare Medical', lat:15.5638, lng:78.4757, address:'Old Town, Nandyal'},
-    {name:'HealthFirst Store', lat:15.5678, lng:78.4817, address:'New Colony, Nandyal'},
-  ];
-  map = L.map('map').setView([15.5658, 78.4797], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
-  stores.forEach(s => {
-    L.marker([s.lat, s.lng]).addTo(map).bindPopup(`<b>${s.name}</b><br>${s.address}`);
-  });
-  document.getElementById('store-cards').innerHTML = stores.map(s => `
-    <div class="card card-sm" style="cursor:pointer;" onclick="">
-      <div style="font-weight:700;margin-bottom:4px;">🏪 ${s.name}</div>
-      <div style="color:var(--text2);font-size:.85rem;">${s.address}</div>
-      <div style="margin-top:8px;"><span class="stock-badge in">Open</span></div>
-    </div>`).join('');
-}
-
-// ============ MEDIBOT ============
-function sendBotMsg() {
-  const input = document.getElementById('bot-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  appendBotMsg(msg, 'user');
-  appendBotMsg('...', 'bot', 'typing-indicator');
-  // Use OpenFDA / knowledge base
-  setTimeout(async () => {
-    document.querySelector('.typing-indicator')?.remove();
-    const reply = await getBotReply(msg);
-    appendBotMsg(reply, 'bot');
-  }, 1000);
-}
-
-function botQuick(msg) {
-  document.getElementById('bot-input').value = msg;
-  sendBotMsg();
-}
-
-async function getBotReply(msg) {
-  const lower = msg.toLowerCase();
-  if (lower.includes('side effect')) {
-    const med = lower.replace(/side effects? of /,'').trim();
-    return `⚠️ Common side effects of ${med} may include nausea, dizziness, headache, and allergic reactions. Always consult your doctor for personalized advice. I can search OpenFDA for more specific information.`;
+function filterMeds() {
+  const q = document.getElementById('medSearch').value.toLowerCase();
+  const cat = document.getElementById('medCategory').value;
+  let list = medicines.filter(m =>
+    (!q || m.name.toLowerCase().includes(q) || (m.genericName||'').toLowerCase().includes(q)) &&
+    (!cat || m.category === cat)
+  );
+  if (sortOrder === 'asc') {
+    list.sort((a, b) => {
+      const ap = Math.min(...Object.values(a.stores||{}).map(s=>s.price).filter(Boolean)) || 9999;
+      const bp = Math.min(...Object.values(b.stores||{}).map(s=>s.price).filter(Boolean)) || 9999;
+      return ap - bp;
+    });
   }
-  if (lower.includes('dosage') || lower.includes('dose')) {
-    return `💊 Dosage varies by age, weight and condition. For adults, typical doses are usually taken every 4-8 hours. Always follow your doctor's prescription or package instructions. Never exceed the recommended dose.`;
-  }
-  if (lower.includes('interaction')) {
-    return `⚗️ Drug interactions can be serious. Always inform your doctor about all medicines you take, including vitamins and supplements. Use our search feature to find medicines and check with a pharmacist.`;
-  }
-  if (lower.includes('fever') || lower.includes('pain')) {
-    return `🌡️ For fever and pain relief, common options include:
-• Paracetamol (Crocin) - safest option
-• Ibuprofen (Brufen) - anti-inflammatory
-• Aspirin - avoid in children under 12
-
-Always consult a doctor if fever is above 103°F or persists over 3 days.`;
-  }
-  if (lower.includes('hello') || lower.includes('hi')) {
-    return `👋 Hello! I'm MediBot v5.0. I can help you with medicine information, dosages, side effects, drug interactions and more. What would you like to know?`;
-  }
-  return `🔍 I can help with medicine information! Try asking about:
-• Side effects of a specific medicine
-• Dosage information
-• Drug interactions
-• Medicines for specific conditions
-
-For personalized medical advice, please consult a healthcare professional. 👨‍⚕️`;
+  renderMeds(list);
 }
 
-function appendBotMsg(text, from, className) {
-  const el = document.getElementById('bot-messages');
-  const div = document.createElement('div');
-  div.className = 'bot-msg ' + from + (className ? ' ' + className : '');
-  div.innerHTML = text.replace(/
-/g,'<br>');
-  el.appendChild(div);
-  el.scrollTop = el.scrollHeight;
+function sortBy(field) {
+  sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+  document.getElementById('sortPriceBtn').textContent = sortOrder === 'asc' ? '↑ Price' : '↓ Price';
+  filterMeds();
 }
 
-// ============ PROFILE ============
-async function loadProfile() {
-  if (!token) return;
+function quickSearch() {
+  const q = document.getElementById('heroSearch').value.toLowerCase();
+  if (!q) return;
+  const results = medicines.filter(m => m.name.toLowerCase().includes(q) || (m.genericName||'').toLowerCase().includes(q));
+  const grid = document.getElementById('homeResultsGrid');
+  const container = document.getElementById('homeResults');
+  if (!results.length) {
+    container.style.display = 'block';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#64748b">No medicines found for "' + q + '"</div>';
+  } else {
+    container.style.display = 'block';
+    grid.innerHTML = results.slice(0,6).map(m => medCard(m)).join('');
+  }
+}
+
+function showMedDetail(id) {
+  const m = medicines.find(x => x._id === id);
+  if (!m) return;
+  const stores = Object.entries(m.stores || {});
+  const content = `
+    <div class="modal-title">${m.name}</div>
+    <p style="color:#64748b;font-size:.875rem;margin-bottom:1rem">${m.genericName || ''} • ${m.category || ''}</p>
+    ${m.description ? `<p style="margin-bottom:1rem;font-size:.875rem">${m.description}</p>` : ''}
+    <h3 style="font-size:.875rem;font-weight:700;margin-bottom:.75rem">📊 Price Comparison</h3>
+    ${stores.map(([sName, s]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:#1e293b;border-radius:.5rem;margin-bottom:.5rem">
+        <div>
+          <div style="font-weight:600;font-size:.875rem">${sName}</div>
+          <div style="font-size:.75rem;color:#64748b">Stock: ${s.stock || 0}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <span style="font-weight:800;color:#0ea5e9;font-size:1.1rem">₹${s.price}</span>
+          <button class="btn btn-primary" style="padding:.35rem .75rem;font-size:.8rem" onclick="addToCartFromStore('${id}','${sName}')">Add</button>
+        </div>
+      </div>
+    `).join('')}
+    ${m.sideEffects ? `<p style="font-size:.75rem;color:#64748b;margin-top:1rem">⚠️ Side effects: ${m.sideEffects}</p>` : ''}
+    ${m.dosage ? `<p style="font-size:.75rem;color:#94a3b8;margin-top:.5rem">💊 Dosage: ${m.dosage}</p>` : ''}
+  `;
+  document.getElementById('medModalContent').innerHTML = content;
+  openModal('medModal');
+}
+
+// ===================== STORES =====================
+async function loadStores() {
   try {
-    const res = await fetch(API + '/api/profile', {headers:{'Authorization':'Bearer '+token}});
-    const data = await res.json();
-    document.getElementById('profile-name').textContent = data.name || 'User';
-    document.getElementById('profile-email').textContent = data.email || '';
-    document.getElementById('profile-role').textContent = (data.role || 'user').charAt(0).toUpperCase() + (data.role||'user').slice(1);
-    document.getElementById('profile-avatar').textContent = (data.name||'U').charAt(0).toUpperCase();
-    document.getElementById('p-name').value = data.name || '';
-    document.getElementById('p-phone').value = data.phone || '';
-    document.getElementById('p-age').value = data.age || '';
-    document.getElementById('p-address').value = data.address || '';
-    document.getElementById('p-allergies').value = data.allergies || '';
-    if (data.bloodGroup) document.getElementById('p-blood').value = data.bloodGroup;
-    // Loyalty points (mock based on orders)
-    const pts = (data.totalSpent || 0) / 10;
-    document.getElementById('loyalty-points').textContent = Math.floor(pts);
-    document.getElementById('loyalty-value').textContent = '= ₹' + Math.floor(pts/10) + ' discount available';
-    const progress = (pts % 100) / 100 * 100;
-    document.getElementById('loyalty-bar').style.width = progress + '%';
-    document.getElementById('pts-needed').textContent = Math.ceil(100 - (pts % 100));
+    const data = await api('/api/stores');
+    stores = Array.isArray(data) ? data : (data.stores || []);
+    renderStores();
+    document.getElementById('statStores').textContent = stores.length;
   } catch(e) {}
 }
 
+function renderStores() {
+  const grid = document.getElementById('storesGrid');
+  if (!stores.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">No stores found</div>';
+    return;
+  }
+  grid.innerHTML = stores.map(s => `
+    <div class="store-card">
+      <div class="store-icon">🏪</div>
+      <div style="flex:1">
+        <div style="font-weight:700">${s.name}</div>
+        <div style="font-size:.75rem;color:#64748b">${s.address || ''}</div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">
+          ${s.isOpen !== false ? '<span class="badge badge-success">Open</span>' : '<span class="badge badge-error">Closed</span>'}
+          ${s.rating ? `<span class="badge badge-primary">⭐ ${s.rating}</span>` : ''}
+        </div>
+      </div>
+      <button class="btn btn-secondary" onclick="showPage('map')" style="padding:.5rem .75rem;font-size:.8rem">📍 Map</button>
+    </div>
+  `).join('');
+}
+
+// ===================== CART =====================
+function addToCart(id) {
+  const m = medicines.find(x => x._id === id);
+  if (!m) return;
+  const prices = Object.entries(m.stores || {}).map(([n,s]) => ({name:n, price:s.price, stock:s.stock}));
+  const best = prices.sort((a,b) => a.price - b.price)[0];
+  if (!best) return toast('No price available', 'error');
+  const existing = cart.find(c => c.id === id);
+  if (existing) { existing.qty++; } else { cart.push({id, name:m.name, price:best.price, store:best.name, qty:1}); }
+  localStorage.setItem('mf_cart', JSON.stringify(cart));
+  updateCartUI();
+  toast(m.name + ' added to cart!', 'success');
+}
+
+function addToCartFromStore(id, storeName) {
+  const m = medicines.find(x => x._id === id);
+  if (!m) return;
+  const s = m.stores[storeName];
+  if (!s) return;
+  const existing = cart.find(c => c.id === id && c.store === storeName);
+  if (existing) { existing.qty++; } else { cart.push({id, name:m.name, price:s.price, store:storeName, qty:1}); }
+  localStorage.setItem('mf_cart', JSON.stringify(cart));
+  updateCartUI();
+  closeModal('medModal');
+  toast(m.name + ' added from ' + storeName + '!', 'success');
+}
+
+function updateCartUI() {
+  const total = cart.reduce((s, c) => s + c.qty, 0);
+  const badge = document.getElementById('cartCount');
+  if (total > 0) { badge.style.display = 'inline-flex'; badge.textContent = total; }
+  else badge.style.display = 'none';
+  renderCart();
+}
+
+function renderCart() {
+  const c = document.getElementById('cartContainer');
+  if (!cart.length) {
+    c.innerHTML = '<div style="text-align:center;padding:3rem;color:#64748b"><div style="font-size:3rem;margin-bottom:1rem">🛒</div><p>Your cart is empty</p><button class="btn btn-primary" onclick="showPage(\'medicines\')" style="margin-top:1rem">Browse Medicines</button></div>';
+    return;
+  }
+  const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  c.innerHTML = `
+    <div class="card" style="margin-bottom:1rem">
+      ${cart.map(item => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid #1e293b">
+          <div>
+            <div style="font-weight:600">${item.name}</div>
+            <div style="font-size:.75rem;color:#64748b">${item.store} • ₹${item.price} each</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <button onclick="changeQty('${item.id}','${item.store}',-1)" class="btn btn-secondary" style="padding:.25rem .5rem;min-width:28px">-</button>
+            <span style="min-width:24px;text-align:center">${item.qty}</span>
+            <button onclick="changeQty('${item.id}','${item.store}',1)" class="btn btn-secondary" style="padding:.25rem .5rem;min-width:28px">+</button>
+            <span style="font-weight:700;min-width:60px;text-align:right">₹${item.price * item.qty}</span>
+            <button onclick="removeFromCart('${item.id}','${item.store}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem">✕</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="coupon-row" style="margin-bottom:1rem">
+        <input type="text" id="couponInput" placeholder="Coupon code (e.g. WELCOME10)" style="flex:1">
+        <button class="btn btn-secondary" onclick="applyCoupon()">Apply</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.875rem;color:#64748b;margin-bottom:.5rem"><span>Subtotal</span><span>₹${subtotal}</span></div>
+      <div id="discountRow" style="display:none;color:#22c55e;font-size:.875rem;justify-content:space-between"></div>
+      <div style="display:flex;justify-content:space-between;font-weight:800;font-size:1.1rem;margin:1rem 0" id="totalRow"><span>Total</span><span>₹${subtotal}</span></div>
+      <div style="display:flex;gap:.75rem">
+        <button class="btn btn-secondary" onclick="cart=[];localStorage.removeItem('mf_cart');updateCartUI()" style="padding:.75rem 1rem">Clear</button>
+        <button class="btn btn-primary" style="flex:1;padding:.75rem" onclick="checkout()">Checkout — ₹${subtotal}</button>
+      </div>
+    </div>
+  `;
+}
+
+function changeQty(id, store, delta) {
+  const item = cart.find(c => c.id === id && c.store === store);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(c => !(c.id === id && c.store === store));
+  localStorage.setItem('mf_cart', JSON.stringify(cart));
+  updateCartUI();
+}
+
+function removeFromCart(id, store) {
+  cart = cart.filter(c => !(c.id === id && c.store === store));
+  localStorage.setItem('mf_cart', JSON.stringify(cart));
+  updateCartUI();
+  toast('Removed from cart', 'info');
+}
+
+let discount = 0;
+const COUPONS = {WELCOME10:10, MEDIFIND20:20, FIRST50:50, SAVE30:30, HEALTH15:15};
+
+function applyCoupon() {
+  const code = document.getElementById('couponInput').value.toUpperCase().trim();
+  if (COUPONS[code]) {
+    discount = COUPONS[code];
+    const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+    const discAmt = Math.round(subtotal * discount / 100);
+    const total = subtotal - discAmt;
+    const row = document.getElementById('discountRow');
+    row.style.display = 'flex';
+    row.innerHTML = `<span>Coupon (${code} -${discount}%)</span><span>-₹${discAmt}</span>`;
+    document.getElementById('totalRow').innerHTML = `<span>Total</span><span>₹${total}</span>`;
+    toast('Coupon applied! ' + discount + '% off', 'success');
+  } else {
+    toast('Invalid coupon code', 'error');
+  }
+}
+
+async function checkout() {
+  if (!user) { openModal('loginModal'); return; }
+  if (!cart.length) return;
+  try {
+    const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+    const discAmt = Math.round(subtotal * discount / 100);
+    const data = await api('/api/orders', 'POST', {
+      items: cart.map(c => ({medicineId:c.id, medicineName:c.name, storeName:c.store, price:c.price, quantity:c.qty})),
+      totalAmount: subtotal - discAmt,
+      paymentMethod: 'cod',
+      discount: discAmt
+    });
+    if (data._id || data.order) {
+      cart = [];
+      discount = 0;
+      localStorage.removeItem('mf_cart');
+      updateCartUI();
+      loadOrders();
+      toast('Order placed! 🎉', 'success');
+      showPage('orders');
+    } else {
+      toast(data.message || 'Order failed', 'error');
+    }
+  } catch(e) { toast('Checkout error', 'error'); }
+}
+
+// ===================== ORDERS =====================
+async function loadOrders() {
+  if (!token) return;
+  try {
+    const data = await api('/api/orders');
+    const orders = Array.isArray(data) ? data : (data.orders || []);
+    const c = document.getElementById('ordersContainer');
+    if (!orders.length) {
+      c.innerHTML = '<div style="text-align:center;padding:3rem;color:#64748b"><div style="font-size:3rem;margin-bottom:1rem">📦</div><p>No orders yet</p></div>';
+      return;
+    }
+    c.innerHTML = orders.map(o => `
+      <div class="card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:.75rem">
+          <div>
+            <div style="font-weight:700">Order #${o._id.slice(-6).toUpperCase()}</div>
+            <div style="font-size:.75rem;color:#64748b">${new Date(o.createdAt).toLocaleDateString('en-IN')}</div>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span class="badge ${o.status === 'delivered' ? 'badge-success' : o.status === 'cancelled' ? 'badge-error' : 'badge-primary'}">${o.status}</span>
+            <button class="btn btn-secondary" style="padding:.35rem .75rem;font-size:.8rem" onclick="showTracking('${o._id}')">Track</button>
+          </div>
+        </div>
+        <div style="font-size:.875rem;color:#64748b;margin-bottom:.5rem">${(o.items||[]).map(i => i.medicineName + ' x' + i.quantity).join(', ')}</div>
+        <div style="font-weight:700;color:#0ea5e9">₹${o.totalAmount}</div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function showTracking(orderId) {
+  try {
+    const data = await api('/api/tracking/' + orderId);
+    const order = data.order || data;
+    const steps = ['Order Placed', 'Confirmed', 'Packed', 'Out for Delivery', 'Delivered'];
+    const statusMap = {pending:0, confirmed:1, packed:2, 'out for delivery':3, delivered:4};
+    const currentStep = statusMap[order.status] ?? 0;
+
+    document.getElementById('trackContent').innerHTML = `
+      <div style="margin-bottom:1rem">
+        <span style="font-weight:700">Order #${orderId.slice(-6).toUpperCase()}</span>
+        <span class="badge badge-primary" style="margin-left:.5rem">${order.status}</span>
+      </div>
+      <div class="track-timeline">
+        ${steps.map((step, i) => `
+          <div class="track-step ${i < currentStep ? 'done' : i === currentStep ? 'active' : ''}">
+            <div style="font-weight:600;font-size:.875rem">${step}</div>
+            ${i <= currentStep ? `<div style="font-size:.75rem;color:#64748b">${i === currentStep ? 'In progress' : 'Done ✓'}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+      ${order.estimatedDelivery ? `<p style="margin-top:1rem;font-size:.875rem;color:#94a3b8">Estimated delivery: ${new Date(order.estimatedDelivery).toLocaleDateString('en-IN')}</p>` : ''}
+    `;
+    openModal('trackModal');
+  } catch(e) { toast('Tracking error', 'error'); }
+}
+
+// ===================== FAVOURITES =====================
+function toggleFav(id) {
+  const m = medicines.find(x => x._id === id);
+  if (!m) return;
+  const idx = favourites.findIndex(f => f._id === id);
+  if (idx >= 0) {
+    favourites.splice(idx, 1);
+    toast('Removed from favourites', 'info');
+  } else {
+    favourites.push(m);
+    toast('Added to favourites! ❤️', 'success');
+  }
+  localStorage.setItem('mf_favs', JSON.stringify(favourites));
+  renderMeds(medicines.filter(m => {
+    const q = document.getElementById('medSearch').value.toLowerCase();
+    return !q || m.name.toLowerCase().includes(q);
+  }));
+  renderFavs();
+}
+
+function renderFavs() {
+  const grid = document.getElementById('favsGrid');
+  if (!favourites.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#64748b">No favourites yet</div>';
+    return;
+  }
+  grid.innerHTML = favourites.map(m => medCard(m)).join('');
+}
+
+// ===================== REMINDERS =====================
+function addReminder() {
+  const med = document.getElementById('remMed').value;
+  const time = document.getElementById('remTime').value;
+  if (!med || !time) return toast('Fill medicine name and time', 'error');
+  reminders.push({id:Date.now(), med, time, active:true});
+  localStorage.setItem('mf_reminders', JSON.stringify(reminders));
+  document.getElementById('remMed').value = '';
+  document.getElementById('remTime').value = '';
+  renderReminders();
+  toast('Reminder set for ' + med + ' at ' + time, 'success');
+}
+
+function renderReminders() {
+  const c = document.getElementById('remindersList');
+  if (!reminders.length) {
+    c.innerHTML = '<div style="text-align:center;padding:2rem;color:#64748b">No reminders set</div>';
+    return;
+  }
+  c.innerHTML = reminders.map(r => `
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <div>
+        <div style="font-weight:700">${r.med}</div>
+        <div style="font-size:.875rem;color:#64748b">⏰ ${r.time}</div>
+      </div>
+      <button onclick="deleteReminder(${r.id})" class="btn btn-danger" style="padding:.35rem .75rem;font-size:.8rem">Delete</button>
+    </div>
+  `).join('');
+}
+
+function deleteReminder(id) {
+  reminders = reminders.filter(r => r.id !== id);
+  localStorage.setItem('mf_reminders', JSON.stringify(reminders));
+  renderReminders();
+  toast('Reminder deleted', 'info');
+}
+
+// ===================== PROFILE =====================
 async function saveProfile() {
   if (!token) return;
   try {
-    const res = await fetch(API + '/api/profile', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({
-        name: document.getElementById('p-name').value,
-        phone: document.getElementById('p-phone').value,
-        age: document.getElementById('p-age').value,
-        bloodGroup: document.getElementById('p-blood').value,
-        address: document.getElementById('p-address').value,
-        allergies: document.getElementById('p-allergies').value,
-      })
+    const data = await api('/api/profile', 'PUT', {
+      name: document.getElementById('editName').value,
+      phone: document.getElementById('editPhone').value,
+      address: document.getElementById('editAddress').value
     });
-    if (res.ok) showToast('Profile updated! ✅', 'success');
-    else showToast('Update failed', 'error');
-  } catch(e) { showToast('Error', 'error'); }
+    if (data.user || data.success) {
+      toast('Profile updated!', 'success');
+      if (data.user) { user = data.user; onLogin(); }
+    } else {
+      toast(data.message || 'Update failed', 'error');
+    }
+  } catch(e) { toast('Profile error', 'error'); }
 }
 
 async function changePassword() {
-  const cur = document.getElementById('cur-pass').value;
-  const newP = document.getElementById('new-pass').value;
-  const conf = document.getElementById('conf-pass').value;
-  if (!cur || !newP || !conf) return showToast('Fill all fields', 'error');
-  if (newP !== conf) return showToast('Passwords do not match', 'error');
-  if (newP.length < 6) return showToast('Password must be 6+ characters', 'error');
-  try {
-    const res = await fetch(API + '/api/profile/change-password', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({currentPassword: cur, newPassword: newP})
-    });
-    const data = await res.json();
-    if (res.ok) { showToast('Password changed! ✅', 'success'); document.getElementById('cur-pass').value=''; document.getElementById('new-pass').value=''; document.getElementById('conf-pass').value=''; }
-    else showToast(data.message || 'Failed', 'error');
-  } catch(e) { showToast('Error', 'error'); }
-}
-
-async function loadProfileOrders() {
   if (!token) return;
+  const cur = document.getElementById('pwCurrent').value;
+  const nw = document.getElementById('pwNew').value;
+  const cf = document.getElementById('pwConfirm').value;
+  if (!cur || !nw) return toast('Fill all fields', 'error');
+  if (nw !== cf) return toast('Passwords do not match', 'error');
+  if (nw.length < 6) return toast('Password must be at least 6 chars', 'error');
   try {
-    const res = await fetch(API + '/api/orders/my-orders', {headers:{'Authorization':'Bearer '+token}});
-    const orders = await res.json();
-    const el = document.getElementById('profile-orders-list');
-    if (!orders.length) { el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">No orders yet</div>'; return; }
-    el.innerHTML = orders.slice(0,5).map(o => `
-      <div class="card card-sm" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <div>
-          <div style="font-weight:600;">Order #${o._id?.slice(-6)}</div>
-          <div style="color:var(--text2);font-size:.82rem;">${new Date(o.createdAt).toLocaleDateString()}</div>
-        </div>
-        <div style="text-align:right;">
-          <span class="status-badge ${o.status}">${o.status}</span>
-          <div style="font-weight:700;">₹${o.totalAmount?.toFixed(2)}</div>
-        </div>
-      </div>`).join('');
-  } catch(e) {}
-}
-
-async function loadFavourites() {
-  if (!token) return;
-  try {
-    const res = await fetch(API + '/api/profile/favourites', {headers:{'Authorization':'Bearer '+token}});
-    const favs = await res.json();
-    const el = document.getElementById('fav-list');
-    if (!favs.length) { el.innerHTML = '<div style="color:var(--text2);text-align:center;padding:40px;grid-column:1/-1;">No favourites yet. Search for medicines and click ❤️</div>'; return; }
-    el.innerHTML = favs.map(f => `
-      <div class="fav-card">
-        <div style="font-weight:700;font-size:.95rem;">${f.medicine?.name || 'Unknown'}</div>
-        <div style="color:var(--text2);font-size:.82rem;">${f.medicine?.category || ''}</div>
-        <button class="btn btn-primary btn-sm" style="margin-top:4px;" onclick="doSearchDirect('${f.medicine?.name}')">Search Prices</button>
-      </div>`).join('');
-  } catch(e) {}
-}
-
-async function saveFavourite(medId) {
-  if (!token) { openAuthModal(); return; }
-  try {
-    const res = await fetch(API + '/api/profile/favourites', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({medicineId: medId})
-    });
-    const data = await res.json();
-    if (res.ok) showToast('Saved to favourites! ❤️', 'success');
-    else showToast(data.message || 'Already saved', 'info');
-  } catch(e) {}
-}
-
-async function loadReminders() {
-  if (!token) return;
-  try {
-    const res = await fetch(API + '/api/profile/reminders', {headers:{'Authorization':'Bearer '+token}});
-    const reminders = await res.json();
-    const el = document.getElementById('reminders-list');
-    if (!reminders.length) { el.innerHTML = '<div style="color:var(--text2);text-align:center;padding:30px;">No reminders yet</div>'; return; }
-    el.innerHTML = reminders.map(r => `
-      <div class="reminder-card">
-        <div class="reminder-info">
-          <h4>${r.medicineName}</h4>
-          <p>⏰ ${r.time} · ${r.frequency} ${r.notes ? '· ' + r.notes : ''}</p>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteReminder('${r._id}')"><i class="fas fa-trash"></i></button>
-      </div>`).join('');
-  } catch(e) {}
-}
-
-async function addReminder() {
-  if (!token) { openAuthModal(); return; }
-  const medicineName = document.getElementById('rem-name').value;
-  const time = document.getElementById('rem-time').value;
-  const frequency = document.getElementById('rem-freq').value;
-  const notes = document.getElementById('rem-notes').value;
-  if (!medicineName || !time) return showToast('Medicine name and time required', 'error');
-  try {
-    const res = await fetch(API + '/api/profile/reminders', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({medicineName, time, frequency, notes})
-    });
-    if (res.ok) { showToast('Reminder added! ⏰', 'success'); document.getElementById('rem-name').value=''; loadReminders(); }
-  } catch(e) {}
-}
-
-async function deleteReminder(id) {
-  try {
-    await fetch(API + '/api/profile/reminders/' + id, {method:'DELETE',headers:{'Authorization':'Bearer '+token}});
-    showToast('Reminder deleted', 'info');
-    loadReminders();
-  } catch(e) {}
-}
-
-function switchProfileTab(tab) {
-  ['info','orders','favourites','reminders','security'].forEach(t => {
-    document.getElementById('ptab-' + t).style.display = t === tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.profile-tab').forEach((b,i) => {
-    b.classList.toggle('active', ['info','orders','favourites','reminders','security'][i] === tab);
-  });
-}
-
-// ============ ADMIN ============
-async function loadAdmin() {
-  if (!token || !currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'store')) return;
-  try {
-    const [ordersRes, storesRes] = await Promise.all([
-      fetch(API + '/api/orders/all', {headers:{'Authorization':'Bearer '+token}}),
-      fetch(API + '/api/stores')
-    ]);
-    const orders = await ordersRes.json();
-    const stores = await storesRes.json();
-    const revenue = orders.filter(o=>o.status==='completed').reduce((s,o)=>s+(o.totalAmount||0),0);
-    document.getElementById('admin-stats').innerHTML = `
-      <div class="admin-stat"><div style="font-size:1.5rem;">📦</div><h3>${orders.length}</h3><p>Total Orders</p></div>
-      <div class="admin-stat"><div style="font-size:1.5rem;">✅</div><h3>${orders.filter(o=>o.status==='completed').length}</h3><p>Completed</p></div>
-      <div class="admin-stat"><div style="font-size:1.5rem;">💰</div><h3>₹${revenue.toFixed(0)}</h3><p>Revenue</p></div>
-      <div class="admin-stat"><div style="font-size:1.5rem;">🏪</div><h3>${stores.length}</h3><p>Stores</p></div>`;
-    switchAdminTab('orders');
-  } catch(e) {}
-}
-
-async function switchAdminTab(tab) {
-  document.querySelectorAll('.profile-tab').forEach((b,i) => {
-    b.classList.toggle('active', ['orders','inventory','users'][i] === tab);
-  });
-  const el = document.getElementById('admin-tab-content');
-  if (tab === 'orders') {
-    const res = await fetch(API + '/api/orders/all', {headers:{'Authorization':'Bearer '+token}});
-    const orders = await res.json();
-    el.innerHTML = `<div style="overflow-x:auto;"><table><thead><tr><th>Order #</th><th>Customer</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>
-      ${orders.slice(0,20).map(o => `<tr>
-        <td>#${o._id?.slice(-6)}</td>
-        <td>${o.user?.name || 'User'}</td>
-        <td>₹${o.totalAmount?.toFixed(2)}</td>
-        <td><span class="status-badge ${o.status}">${o.status}</span></td>
-        <td><select onchange="updateOrderStatus('${o._id}',this.value)" class="form-control" style="padding:4px 8px;font-size:.8rem;width:130px;">
-          <option value="pending" ${o.status==='pending'?'selected':''}>Pending</option>
-          <option value="confirmed" ${o.status==='confirmed'?'selected':''}>Confirmed</option>
-          <option value="processing" ${o.status==='processing'?'selected':''}>Processing</option>
-          <option value="out_for_delivery" ${o.status==='out_for_delivery'?'selected':''}>Out for Delivery</option>
-          <option value="completed" ${o.status==='completed'?'selected':''}>Completed</option>
-          <option value="cancelled" ${o.status==='cancelled'?'selected':''}>Cancelled</option>
-        </select></td>
-      </tr>`).join('')}
-    </tbody></table></div>`;
-  }
-  if (tab === 'inventory') {
-    const stores = await (await fetch(API + '/api/stores')).json();
-    if (stores.length > 0) {
-      const inv = await (await fetch(API + '/api/stores/' + stores[0]._id + '/inventory')).json();
-      el.innerHTML = `<div style="overflow-x:auto;"><table><thead><tr><th>Medicine</th><th>Stock</th><th>Price</th><th>Discount</th></tr></thead><tbody>
-        ${inv.map(i => `<tr>
-          <td>${i.medicine?.name || 'Unknown'}</td>
-          <td><span class="stock-badge ${i.stock>10?'in':i.stock>0?'low':'out'}">${i.stock}</span></td>
-          <td>₹${i.price}</td>
-          <td>${i.discount||0}%</td>
-        </tr>`).join('')}
-      </tbody></table></div>`;
+    const data = await api('/api/auth/change-password', 'POST', {currentPassword:cur, newPassword:nw});
+    if (data.success) {
+      toast('Password changed!', 'success');
+      document.getElementById('pwCurrent').value = '';
+      document.getElementById('pwNew').value = '';
+      document.getElementById('pwConfirm').value = '';
+    } else {
+      toast(data.message || 'Failed', 'error');
     }
+  } catch(e) { toast('Password error', 'error'); }
+}
+
+// ===================== AI CHAT =====================
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  const msgs = document.getElementById('chatMsgs');
+  msgs.innerHTML += `<div style="background:#0ea5e9;padding:.75rem 1rem;border-radius:.75rem;max-width:80%;align-self:flex-end;font-size:.875rem">${msg}</div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const data = await api('/api/medicines/chat', 'POST', {message: msg});
+    const reply = data.reply || data.message || 'I can help with medicine information. Please consult a doctor for medical advice.';
+    msgs.innerHTML += `<div style="background:#1e293b;padding:.75rem 1rem;border-radius:.75rem;max-width:80%;align-self:flex-start;font-size:.875rem">🤖 ${reply}</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {
+    msgs.innerHTML += `<div style="background:#1e293b;padding:.75rem 1rem;border-radius:.75rem;max-width:80%;align-self:flex-start;font-size:.875rem">🤖 I'm here to help! For medicine queries, please also consult your pharmacist or doctor.</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
   }
 }
 
-async function updateOrderStatus(orderId, status) {
-  try {
-    await fetch(API + '/api/orders/' + orderId + '/status', {
-      method:'PUT',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({status})
+// ===================== MAP =====================
+function initMap() {
+  if (mapInst) return;
+  mapInst = L.map('map').setView([17.385, 78.4867], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}).addTo(mapInst);
+
+  // Get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const {latitude:lat, longitude:lng} = pos.coords;
+      mapInst.setView([lat, lng], 14);
+      L.marker([lat, lng]).addTo(mapInst).bindPopup('📍 You are here').openPopup();
+
+      // Add store markers
+      stores.forEach(s => {
+        if (s.lat && s.lng) {
+          L.marker([s.lat, s.lng])
+            .addTo(mapInst)
+            .bindPopup(`<b>${s.name}</b><br>${s.address || ''}`);
+        }
+      });
     });
-    showToast('Order status updated to ' + status, 'success');
-  } catch(e) {}
-}
-
-// ============ HOME STATS ============
-async function loadHomeStats() {
-  try {
-    const [medsRes, storesRes] = await Promise.all([
-      fetch(API + '/api/medicines'),
-      fetch(API + '/api/stores')
-    ]);
-    const meds = await medsRes.json();
-    const stores = await storesRes.json();
-    document.getElementById('stat-meds').textContent = meds.length || 0;
-    document.getElementById('stat-stores').textContent = stores.length || 0;
-    document.getElementById('stat-orders').textContent = Math.floor(Math.random() * 20 + 5);
-    document.getElementById('stat-users').textContent = Math.floor(Math.random() * 50 + 20);
-    // Quick meds
-    if (meds.length > 0) {
-      document.getElementById('quick-meds').innerHTML = meds.slice(0,10).map(m =>
-        `<button class="btn btn-outline btn-sm" onclick="doSearchDirect('${m.name}')">${m.name}</button>`
-      ).join('');
-    }
-  } catch(e) {}
-}
-
-function loadQuickMeds() {}
-
-function doSearchDirect(name) {
-  document.getElementById('home-search').value = name;
-  doSearch();
-}
-
-// ============ NOTIFICATIONS ============
-function addNotification(title, message, type) {
-  notifications.unshift({title, message, type, time: new Date()});
-  const count = document.getElementById('notif-count');
-  count.textContent = notifications.length;
-  count.classList.add('show');
-  renderNotifications();
-}
-
-function renderNotifications() {
-  const el = document.getElementById('notif-list');
-  if (!notifications.length) { el.innerHTML = '<div style="padding:16px;color:var(--text2);text-align:center;font-size:.88rem;">No notifications yet</div>'; return; }
-  el.innerHTML = notifications.slice(0,10).map(n => `
-    <div class="notif-item unread">
-      <div style="font-weight:600;font-size:.88rem;">${n.title}</div>
-      <div>${n.message}</div>
-      <div class="notif-time">${timeSince(n.time)}</div>
-    </div>`).join('');
-}
-
-function toggleNotifPanel() {
-  const panel = document.getElementById('notif-panel');
-  panel.classList.toggle('open');
-  if (panel.classList.contains('open')) {
-    document.getElementById('notif-count').classList.remove('show');
-    document.getElementById('notif-count').textContent = '0';
   }
 }
 
-function timeSince(date) {
-  const s = Math.floor((new Date() - date) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.floor(s/60) + 'm ago';
-  return Math.floor(s/3600) + 'h ago';
+// ===================== SOS =====================
+function startSOS() {
+  openModal('sosModal');
 }
 
-// ============ SOS ============
-function triggerSOS() {
-  if (confirm('🆘 EMERGENCY SOS\n\nThis will attempt to call emergency services.\nProceed?')) {
-    showToast('🆘 SOS activated! Calling 108 (Ambulance)...', 'error');
-    addNotification('SOS Activated', 'Emergency services notified', 'error');
-    window.location.href = 'tel:108';
-  }
+// ===================== NAVIGATION =====================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+
+  // Special init for map
+  if (page === 'map') setTimeout(initMap, 100);
+  if (page === 'orders') loadOrders();
+  if (page === 'favourites') renderFavs();
+  if (page === 'cart') renderCart();
 }
 
-// ============ MODAL HELPERS ============
+// ===================== MODALS =====================
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('open');
+// Close modal on backdrop click
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ===================== AUTH TABS =====================
+function authTab(tab, btn) {
+  document.querySelectorAll('#loginModal .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['login','register','otp','forgot'].forEach(t => {
+    document.getElementById('auth' + t.charAt(0).toUpperCase() + t.slice(1)).style.display = t === tab ? 'block' : 'none';
   });
-});
+}
 
-// Close notif panel on outside click
-document.addEventListener('click', (e) => {
-  const panel = document.getElementById('notif-panel');
-  const btn = document.getElementById('notif-btn');
-  if (panel && !btn?.contains(e.target)) panel.classList.remove('open');
-});
+// ===================== ADMIN =====================
+function adminTab(tab, btn) {
+  document.querySelectorAll('#page-admin .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  loadAdminContent(tab);
+}
 
-// ============ TOAST ============
-function showToast(message, type='info') {
-  const icons = {success:'✅', error:'❌', info:'ℹ️', warning:'⚠️'};
-  const toast = document.createElement('div');
-  toast.className = 'toast ' + type;
-  toast.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${message}</span>`;
-  document.getElementById('toast-container').appendChild(toast);
-  setTimeout(() => { toast.style.opacity='0'; setTimeout(() => toast.remove(), 300); }, 3500);
+async function loadAdminContent(tab) {
+  const c = document.getElementById('adminContent');
+  c.innerHTML = '<div style="text-align:center;padding:2rem;color:#64748b">Loading...</div>';
+  try {
+    if (tab === 'overview') {
+      c.innerHTML = `
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-val">${medicines.length}</div><div class="stat-lbl">Medicines</div></div>
+          <div class="stat-box"><div class="stat-val">${stores.length}</div><div class="stat-lbl">Stores</div></div>
+        </div>`;
+    } else if (tab === 'medicines') {
+      c.innerHTML = `<div style="overflow-x:auto"><table class="admin-table">
+        <tr><th>Name</th><th>Category</th><th>Stores</th><th>Actions</th></tr>
+        ${medicines.slice(0,20).map(m => `<tr>
+          <td><b>${m.name}</b><br><span style="color:#64748b;font-size:.75rem">${m.genericName||''}</span></td>
+          <td>${m.category||'-'}</td>
+          <td>${Object.keys(m.stores||{}).length}</td>
+          <td><button class="btn btn-secondary" style="padding:.25rem .5rem;font-size:.75rem" onclick="showMedDetail('${m._id}')">View</button></td>
+        </tr>`).join('')}
+      </table></div>`;
+    }
+  } catch(e) { c.innerHTML = '<div style="color:#ef4444;padding:1rem">Error loading data</div>'; }
 }
 </script>
-</body>
-</html>
+
+
+</body></html>
