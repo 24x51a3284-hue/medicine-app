@@ -1,34 +1,31 @@
 const fs = require('fs');
 const path = require('path');
-
-let mongoose;
-let isMongoConnected = false;
-
-// ── Try MongoDB Atlas connection ─────────────────────────────────
-async function connectMongo() {
-  if (!process.env.MONGODB_URI) return false;
-  try {
-    mongoose = require('mongoose');
-    await mongoose.connect(process.env.MONGODB_URI);
-    isMongoConnected = true;
-    console.log('✅ MongoDB Atlas connected!');
-    return true;
-  } catch (e) {
-    console.log('⚠️  MongoDB failed, using local JSON:', e.message);
-    return false;
-  }
-}
-
-// ── Local JSON fallback ──────────────────────────────────────────
 const dbPath = path.join(__dirname, 'database.json');
+
 if (!fs.existsSync(dbPath)) {
-  fs.writeFileSync(dbPath, JSON.stringify({
-    users:[], medicines:[], stores:[], inventory:[],
-    orders:[], prescriptions:[], reminders:[], favourites:[], coupons:[]
-  }, null, 2));
+  fs.writeFileSync(dbPath, JSON.stringify({ users:[], medicines:[], stores:[], inventory:[], orders:[], prescriptions:[] }, null, 2));
 }
 
-function readDB() { return JSON.parse(fs.readFileSync(dbPath, 'utf8')); }
-function writeDB(data) { fs.writeFileSync(dbPath, JSON.stringify(data, null, 2)); }
+// ── In-memory cache ──────────────────────────────────────────────
+let _cache = null;
+let _cacheTime = 0;
+const CACHE_TTL = 5000; // 5 seconds - fast reads, still catches writes
 
-module.exports = { readDB, writeDB, connectMongo, isMongoConnected: () => isMongoConnected };
+function readDB() {
+  const now = Date.now();
+  if (_cache && (now - _cacheTime) < CACHE_TTL) return _cache;
+  _cache = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+  _cacheTime = now;
+  return _cache;
+}
+
+function writeDB(data) {
+  _cache = data;
+  _cacheTime = Date.now();
+  // Write async so API response is not blocked
+  fs.writeFile(dbPath, JSON.stringify(data, null, 2), err => {
+    if (err) console.error('DB write error:', err);
+  });
+}
+
+module.exports = { readDB, writeDB };
