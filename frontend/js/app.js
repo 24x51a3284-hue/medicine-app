@@ -1,4 +1,4 @@
-const API = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
+const API = '/api';
 let currentUser = null, token = localStorage.getItem('token');
 let allResults = [], socket, storeMap = null, mapMarkers = [], allStores = [], myLocMarker = null;
 let routingControl = null, userLat = null, userLng = null;

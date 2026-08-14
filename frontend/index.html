@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MediFind v5.0 — Medicine Price Comparison</title>
   
-  <link rel="stylesheet" href="./MediFind v5.0 — Medicine Price Comparison_files/all.min.css" media="all" onload="this.media=&#39;all&#39;">
-  <link rel="stylesheet" href="./MediFind v5.0 — Medicine Price Comparison_files/leaflet.css" media="all" onload="this.media=&#39;all&#39;">
-  <link rel="stylesheet" href="./MediFind v5.0 — Medicine Price Comparison_files/leaflet-routing-machine.css" media="all" onload="this.media=&#39;all&#39;">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
     <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{font-family:"Inter",system-ui,sans-serif;background:#0a0f1e;color:#e2e8f0;min-height:100vh;}
@@ -811,9 +811,9 @@
   </div>
 </div>
 
-<script src="./MediFind v5.0 — Medicine Price Comparison_files/socket.io.min.js.download"></script>
-<script src="./MediFind v5.0 — Medicine Price Comparison_files/leaflet.js.download"></script>
-<script src="./MediFind v5.0 — Medicine Price Comparison_files/leaflet-routing-machine.js.download"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 <script>
 const API = '';
 let token = localStorage.getItem('token');
@@ -1399,8 +1399,7 @@ function appendBotMsg(text, from, className) {
   const el = document.getElementById('bot-messages');
   const div = document.createElement('div');
   div.className = 'bot-msg ' + from + (className ? ' ' + className : '');
-  div.innerHTML = text.replace(/
-/g,'<br>');
+  div.innerHTML = text.replace(/\n/g,'<br>');
   el.appendChild(div);
   el.scrollTop = el.scrollHeight;
 }

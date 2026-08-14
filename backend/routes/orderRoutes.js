@@ -8,6 +8,13 @@ const { sendOrderEmail, sendStatusEmail, sendInvoiceEmail } = require('../email'
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { store, items, paymentMethod = 'cash', paymentId, couponCode, useLoyaltyPoints } = req.body;
+    if (!store) return res.status(400).json({ message: 'Store is required' });
+    if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ message: 'At least one item is required' });
+    for (const item of items) {
+      if (!item.medicine || !item.quantity || item.quantity < 1) {
+        return res.status(400).json({ message: 'Each item needs a valid medicine and quantity' });
+      }
+    }
     const db = readDB();
     let totalAmount = 0;
     const enrichedItems = [];

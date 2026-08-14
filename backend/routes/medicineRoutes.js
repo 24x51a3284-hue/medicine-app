@@ -86,6 +86,40 @@ function mergeFDA(med, fda) {
   };
 }
 
+// ── GET /api/medicines/compare?name= — search with per-store price comparison ─
+router.get('/compare', (req, res) => {
+  try {
+    const q = (req.query.name || '').toLowerCase().trim();
+    const db = readDB();
+    let meds = db.medicines;
+    if (q) {
+      meds = meds.filter(m =>
+        m.name.toLowerCase().includes(q) ||
+        (m.genericName||'').toLowerCase().includes(q) ||
+        (m.category||'').toLowerCase().includes(q) ||
+        (m.manufacturer||'').toLowerCase().includes(q)
+      );
+    }
+    const medicines = meds.map(m => {
+      const stores = db.inventory
+        .filter(i => i.medicine === m._id)
+        .map(i => {
+          const store = db.stores.find(s => s._id === i.store);
+          return {
+            storeId: i.store,
+            storeName: store ? store.name : 'Unknown Store',
+            price: i.price,
+            originalPrice: i.originalPrice || i.price,
+            discount: i.discount || 0,
+            stock: i.stock
+          };
+        });
+      return { ...m, stores };
+    });
+    res.json({ medicines });
+  } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
 // ── GET /api/medicines — list all ───────────────────────────────
 router.get('/', (req, res) => {
   try {

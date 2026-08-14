@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { readDB, writeDB } = require('../../db');
+const { otpLimiter } = require('../middleware/rateLimiter');
 
 // In-memory OTP store (use Redis in production)
 const otpStore = {};
@@ -30,7 +31,7 @@ async function sendOTPviaTwilio(phone, otp) {
 
 // Send OTP
 // BUG FIX #2: Now returns success:true so frontend if(data.success) works
-router.post('/send', async (req, res) => {
+router.post('/send', otpLimiter, async (req, res) => {
   try {
     const { phone } = req.body;
     if (!phone || phone.length !== 10) return res.status(400).json({ message: 'Valid 10-digit phone required' });

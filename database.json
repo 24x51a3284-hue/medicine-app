@@ -48476,10 +48476,24 @@
       "role": "user",
       "phone": "9876543210",
       "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "_id": "1786646916677",
+      "name": "fawaz",
+      "email": "iuuyqhjqjqqq@gmail.com",
+      "password": "$2a$10$.AvKGUDZhCVuXScmVBcYUe.pW/MIjcga8DpPh1/7w7/bGKY3PVa6K",
+      "role": "user",
+      "phone": "8328000888",
+      "loyaltyPoints": 0,
+      "createdAt": "2026-08-13T18:48:36.772Z"
     }
   ],
   "orders": [],
   "notifications": [],
   "reminders": [],
-  "favourites": []
+  "favourites": [],
+  "prescriptions": [],
+  "coupons": [],
+  "resetOTPs": [],
+  "pushSubscriptions": []
 }

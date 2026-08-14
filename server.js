@@ -1,9 +1,13 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+
+const { connectMongo, isMongoConnected } = require('./db');
+const { generalLimiter } = require('./backend/middleware/rateLimiter');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +17,7 @@ app.set('io', io);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
+app.use('/api/', generalLimiter);
 
 app.use('/api/auth',          require('./backend/routes/authRoutes'));
 app.use('/api/medicines',     require('./backend/routes/medicineRoutes'));
@@ -36,4 +41,11 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => console.log('MediFind running on port', PORT));
+
+(async () => {
+  await connectMongo();
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log('🚀 MediFind running on port', PORT);
+    console.log('💾 Storage mode:', isMongoConnected() ? 'MongoDB Atlas (persistent)' : 'local JSON file');
+  });
+})();
