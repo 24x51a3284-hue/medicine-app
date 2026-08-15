@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const { connectMongo, isMongoConnected } = require('./db');
 const { generalLimiter } = require('./backend/middleware/rateLimiter');
+const { startReminderScheduler } = require('./backend/reminderScheduler');
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +31,8 @@ app.use('/api/otp',           require('./backend/routes/otpRoutes'));
 app.use('/api/coupons',       require('./backend/routes/couponRoutes'));
 app.use('/api/tracking',      require('./backend/routes/trackingRoutes'));
 app.use('/api/notifications', require('./backend/routes/notificationRoutes'));
+app.use('/api/prescriptions', require('./backend/routes/prescriptionRoutes'));
+app.use('/api/reminders',     require('./backend/routes/reminderRoutes'));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'index.html')));
@@ -47,5 +50,6 @@ const PORT = process.env.PORT || 5000;
   server.listen(PORT, '0.0.0.0', () => {
     console.log('🚀 MediFind running on port', PORT);
     console.log('💾 Storage mode:', isMongoConnected() ? 'MongoDB Atlas (persistent)' : 'local JSON file');
+    startReminderScheduler(io);
   });
 })();

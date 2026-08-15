@@ -5,6 +5,33 @@ const { authMiddleware } = require('../middleware/auth');
 
 router.get('/', (req, res) => { res.json(readDB().stores); });
 
+// ── GET /api/stores/nearby?lat=&lng=&radius= — location-based store finder ─
+function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+router.get('/nearby', (req, res) => {
+  try {
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+    const radius = parseFloat(req.query.radius) || 10; // default 10km
+    if (isNaN(lat) || isNaN(lng)) return res.status(400).json({ message: 'lat and lng query params are required' });
+
+    const db = readDB();
+    const stores = db.stores
+      .filter(s => s.location && typeof s.location.lat === 'number' && typeof s.location.lng === 'number')
+      .map(s => ({ ...s, distanceKm: Math.round(haversineKm(lat, lng, s.location.lat, s.location.lng) * 10) / 10 }))
+      .filter(s => s.distanceKm <= radius)
+      .sort((a, b) => a.distanceKm - b.distanceKm);
+
+    res.json(stores);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 router.get('/:id', (req, res) => {
   const store = readDB().stores.find(s => s._id === req.params.id);
   if (!store) return res.status(404).json({ message: 'Not found' });
