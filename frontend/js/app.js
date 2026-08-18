@@ -119,6 +119,7 @@ function showPage(p) {
   if (p === 'dashboard') loadDashboard();
   if (p === 'profile') setTimeout(() => loadProfile(), 100);
   if (p === 'reminders') setTimeout(() => loadReminders(), 100);
+  if (p === 'search') setTimeout(() => loadMyPrescriptions(), 100);
 }
 
 // ── SEARCH ──────────────────────────────────────────────────────────────────
@@ -805,9 +806,44 @@ async function emrgSearch(q) {
 }
 
 // ── PRESCRIPTION ───────────────────────────────────────────────────────────
-function handlePresc(input) {
-  if (!input.files[0]) return;
-  showToast('📋 Prescription "' + input.files[0].name + '" uploaded!');
+async function handlePresc(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!token) { showToast('❌ Please login first to upload a prescription'); input.value = ''; return; }
+
+  showToast('⏳ Uploading "' + file.name + '"...');
+  try {
+    const formData = new FormData();
+    formData.append('prescription', file);
+    const res = await fetch(API + '/prescriptions/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Upload failed');
+    showToast('✅ Prescription "' + file.name + '" uploaded! Pending pharmacist review.');
+    input.value = '';
+    loadMyPrescriptions();
+  } catch (e) {
+    showToast('❌ ' + (e.message || 'Upload failed. Try again.'));
+  }
+}
+
+async function loadMyPrescriptions() {
+  const el = document.getElementById('presc-list');
+  if (!el || !token) return;
+  try {
+    const list = await get('/prescriptions/mine', true);
+    if (!list.length) { el.innerHTML = ''; return; }
+    const statusColor = { pending: '#f59e0b', verified: '#16a34a', rejected: '#dc2626' };
+    el.innerHTML = '<div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:6px;">YOUR PRESCRIPTIONS</div>' +
+      list.slice().reverse().map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #f1f5f9;border-radius:8px;padding:.55rem .8rem;margin-top:.4rem;">
+          <div style="font-size:.85rem;color:#1e293b;">📄 ${p.originalName}</div>
+          <span style="font-size:.72rem;font-weight:700;color:${statusColor[p.status] || '#64748b'};text-transform:capitalize;">${p.status}</span>
+        </div>`).join('');
+  } catch { el.innerHTML = ''; }
 }
 
 // ── CHATBOT ────────────────────────────────────────────────────────────────

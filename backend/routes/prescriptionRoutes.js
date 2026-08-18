@@ -6,18 +6,41 @@ const fs = require('fs');
 const { readDB, writeDB } = require('../../db');
 const { authMiddleware } = require('../middleware/auth');
 
-const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'prescriptions');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${req.user.id}_${Date.now()}${ext}`);
-  }
-});
-
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+// ── Cloud storage (Cloudinary) if configured, else local disk fallback ─────
+// Render's filesystem is ephemeral — anything written to local disk is wiped
+// on every redeploy/restart. So if CLOUDINARY_* env vars are set, we stream
+// the upload straight to Cloudinary and store the permanent URL instead.
+const USE_CLOUDINARY = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+
+let cloudinary;
+if (USE_CLOUDINARY) {
+  cloudinary = require('cloudinary').v2;
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+  console.log('☁️  Prescription uploads: Cloudinary (persistent)');
+} else {
+  console.warn('⚠️  CLOUDINARY_* not set — prescription uploads will use local disk.');
+  console.warn('⚠️  On Render this storage is EPHEMERAL: files are lost on every restart/redeploy.');
+  console.warn('⚠️  Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET to fix this.');
+}
+
+const uploadDir = path.join(__dirname, '..', '..', 'uploads', 'prescriptions');
+if (!USE_CLOUDINARY && !fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+const storage = USE_CLOUDINARY
+  ? multer.memoryStorage()
+  : multer.diskStorage({
+      destination: (req, file, cb) => cb(null, uploadDir),
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        cb(null, `${req.user.id}_${Date.now()}${ext}`);
+      }
+    });
 
 const upload = multer({
   storage,
@@ -30,9 +53,19 @@ const upload = multer({
   }
 });
 
+function uploadBufferToCloudinary(buffer, publicIdPrefix) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'medifind/prescriptions', public_id: publicIdPrefix, resource_type: 'auto' },
+      (err, result) => err ? reject(err) : resolve(result)
+    );
+    stream.end(buffer);
+  });
+}
+
 // ── POST /api/prescriptions/upload — upload a prescription image/pdf ──
 router.post('/upload', authMiddleware, (req, res) => {
-  upload.single('prescription')(req, res, (err) => {
+  upload.single('prescription')(req, res, async (err) => {
     if (err) return res.status(400).json({ message: err.message });
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
@@ -41,13 +74,23 @@ router.post('/upload', authMiddleware, (req, res) => {
       const prescription = {
         _id: 'rx' + Date.now(),
         user: req.user.id,
-        fileName: req.file.filename,
         originalName: req.file.originalname,
         mimeType: req.file.mimetype,
         size: req.file.size,
         status: 'pending', // pending | verified | rejected
         uploadedAt: new Date().toISOString()
       };
+
+      if (USE_CLOUDINARY) {
+        const publicId = `${req.user.id}_${Date.now()}`;
+        const result = await uploadBufferToCloudinary(req.file.buffer, publicId);
+        prescription.fileUrl = result.secure_url;
+        prescription.storage = 'cloudinary';
+      } else {
+        prescription.fileName = req.file.filename;
+        prescription.storage = 'local';
+      }
+
       db.prescriptions = db.prescriptions || [];
       db.prescriptions.push(prescription);
       writeDB(db);
@@ -73,6 +116,7 @@ router.get('/:id/file', authMiddleware, (req, res) => {
   if (rx.user !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'pharmacist') {
     return res.status(403).json({ message: 'Not authorized' });
   }
+  if (rx.storage === 'cloudinary' && rx.fileUrl) return res.redirect(rx.fileUrl);
   res.sendFile(path.join(uploadDir, rx.fileName));
 });
 

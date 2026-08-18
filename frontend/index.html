@@ -617,6 +617,19 @@
       </select>
       <button class="btn btn-primary" onclick="doSearch()"><i class="fas fa-search"></i> Search</button>
     </div>
+    <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:18px 20px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-weight:800;color:#1e293b;font-size:1.02rem;">📋 Upload Prescription</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-top:2px;">Needed for Rx-required medicines. JPG, PNG or PDF, up to 5MB.</div>
+        </div>
+        <div>
+          <input type="file" id="presc-file-input" accept=".jpg,.jpeg,.png,.webp,.pdf" style="display:none;" onchange="handlePresc(this)">
+          <button class="btn btn-primary" onclick="document.getElementById('presc-file-input').click()"><i class="fas fa-upload"></i> Upload Prescription</button>
+        </div>
+      </div>
+      <div id="presc-list" style="margin-top:14px;"></div>
+    </div>
     <div id="search-results" class="results-grid">
       <div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text2);">
         <i class="fas fa-search" style="font-size:3rem;margin-bottom:16px;display:block;"></i>

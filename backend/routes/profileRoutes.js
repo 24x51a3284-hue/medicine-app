@@ -68,7 +68,11 @@ router.post('/reminders', authMiddleware, (req, res) => {
     const { medicineName, time, frequency, notes } = req.body;
     const db = readDB();
     if (!db.reminders) db.reminders = [];
-    const reminder = { _id: Date.now().toString(), userId: req.user.id, medicineName, time, frequency, notes, active: true, createdAt: new Date().toISOString() };
+    // NOTE: both 'userId' and 'user' are stored — 'userId' is what this route's
+    // own GET/DELETE filter on, 'user' is what reminderScheduler.js (real-time
+    // socket notifications) reads. Without 'user' the scheduler fires but sends
+    // to an empty 'user-undefined' room, so nobody ever gets the reminder.
+    const reminder = { _id: Date.now().toString(), userId: req.user.id, user: req.user.id, medicineName, time, frequency, notes, active: true, createdAt: new Date().toISOString() };
     db.reminders.push(reminder);
     writeDB(db);
     res.status(201).json(reminder);
