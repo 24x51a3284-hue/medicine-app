@@ -65,14 +65,14 @@ router.put('/change-password', authMiddleware, async (req, res) => {
 // Reminders
 router.post('/reminders', authMiddleware, (req, res) => {
   try {
-    const { medicineName, time, frequency, notes } = req.body;
+    const { medicineName, time, frequency, notes, familyMemberId, familyMemberName } = req.body;
     const db = readDB();
     if (!db.reminders) db.reminders = [];
     // NOTE: both 'userId' and 'user' are stored — 'userId' is what this route's
     // own GET/DELETE filter on, 'user' is what reminderScheduler.js (real-time
     // socket notifications) reads. Without 'user' the scheduler fires but sends
     // to an empty 'user-undefined' room, so nobody ever gets the reminder.
-    const reminder = { _id: Date.now().toString(), userId: req.user.id, user: req.user.id, medicineName, time, frequency, notes, active: true, createdAt: new Date().toISOString() };
+    const reminder = { _id: Date.now().toString(), userId: req.user.id, user: req.user.id, medicineName, time, frequency, notes, familyMemberId: familyMemberId || null, familyMemberName: familyMemberName || null, active: true, createdAt: new Date().toISOString() };
     db.reminders.push(reminder);
     writeDB(db);
     res.status(201).json(reminder);
@@ -132,6 +132,50 @@ router.delete('/favourites/:medicineId', authMiddleware, (req, res) => {
 });
 
 // Loyalty points
+// ── Family Members ────────────────────────────────────────────────
+router.get('/family', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user.familyMembers || []);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.post('/family', authMiddleware, (req, res) => {
+  try {
+    const { name, relation, age, allergies, notes } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ message: 'Name is required' });
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user.familyMembers) user.familyMembers = [];
+    const member = {
+      _id: Date.now().toString(),
+      name: name.trim(),
+      relation: relation || 'Family',
+      age: age || null,
+      allergies: allergies || '',
+      notes: notes || '',
+      createdAt: new Date().toISOString()
+    };
+    user.familyMembers.push(member);
+    writeDB(db);
+    res.status(201).json(member);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.delete('/family/:memberId', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    user.familyMembers = (user.familyMembers || []).filter(m => m._id !== req.params.memberId);
+    writeDB(db);
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 router.get('/loyalty', authMiddleware, (req, res) => {
   try {
     const db = readDB();

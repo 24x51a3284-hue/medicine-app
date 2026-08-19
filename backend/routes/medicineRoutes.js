@@ -206,6 +206,53 @@ router.get('/fda/search', async (req, res) => {
   } catch(err) { res.status(500).json({ message: 'FDA API error: ' + err.message }); }
 });
 
+// ── GET /api/medicines/:id/alternatives — cheaper same-salt substitutes ─
+router.get('/:id/alternatives', (req, res) => {
+  try {
+    const db = readDB();
+    const med = db.medicines.find(m => m._id === req.params.id);
+    if (!med) return res.status(404).json({ message: 'Medicine not found' });
+
+    const lowestPriceOf = (medId) => {
+      const prices = db.inventory.filter(i => i.medicine === medId && i.stock > 0).map(i => i.price);
+      return prices.length ? Math.min(...prices) : null;
+    };
+
+    const currentPrice = lowestPriceOf(med._id);
+
+    // 1. Explicit alternatives listed on the medicine record
+    let altIds = med.alternatives || [];
+    // 2. Fallback: same genericName, different medicine, if no explicit list
+    if (!altIds.length && med.genericName) {
+      altIds = db.medicines
+        .filter(m => m._id !== med._id && m.genericName && m.genericName.toLowerCase() === med.genericName.toLowerCase())
+        .map(m => m._id);
+    }
+
+    const alternatives = altIds
+      .map(id => db.medicines.find(m => m._id === id))
+      .filter(Boolean)
+      .map(alt => {
+        const price = lowestPriceOf(alt._id);
+        const savings = (currentPrice != null && price != null) ? +(currentPrice - price).toFixed(2) : null;
+        const savingsPct = (currentPrice && price != null) ? Math.round((savings / currentPrice) * 100) : null;
+        return {
+          _id: alt._id,
+          name: alt.name,
+          genericName: alt.genericName,
+          manufacturer: alt.manufacturer,
+          lowestPrice: price,
+          savings,
+          savingsPct
+        };
+      })
+      .filter(a => a.lowestPrice != null)
+      .sort((a, b) => a.lowestPrice - b.lowestPrice);
+
+    res.json({ currentPrice, alternatives });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 // ── Admin: add medicine ──────────────────────────────────────────
 router.post('/', authMiddleware, (req, res) => {
   try {

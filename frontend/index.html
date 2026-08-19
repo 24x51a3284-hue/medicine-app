@@ -519,6 +519,12 @@
     <div class="hero-search">
       <i class="fas fa-search" style="color:var(--text2);padding-left:8px;"></i>
       <input type="text" id="home-search" placeholder="Search medicine (e.g. Paracetamol, Ibuprofen...)">
+      <select id="voice-lang" title="Voice search language" style="border:none;background:transparent;color:var(--text2);font-size:.85rem;cursor:pointer;">
+        <option value="en-IN">EN</option>
+        <option value="hi-IN">हिं</option>
+        <option value="te-IN">తె</option>
+      </select>
+      <button class="btn" id="voice-btn-home" onclick="startVoiceSearch('home-search')" title="Search by voice" style="background:transparent;color:var(--text2);padding:0 10px;font-size:1.1rem;"><i class="fas fa-microphone"></i></button>
       <button class="btn btn-primary" onclick="doSearch()">Search</button>
     </div>
     <div class="hero-badges">
@@ -606,6 +612,7 @@
     </div>
     <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
       <input type="text" class="form-control" id="search-input" placeholder="Search medicines..." style="flex:1;min-width:200px;" onkeydown="if(event.key===&#39;Enter&#39;)doSearch()">
+      <button class="btn btn-outline" id="voice-btn-search" onclick="startVoiceSearch('search-input')" title="Search by voice"><i class="fas fa-microphone"></i></button>
       <select class="form-control" id="filter-category" style="width:180px;" onchange="doSearch()">
         <option value="">All Categories</option>
         <option value="pain">Pain Relief</option>
@@ -616,6 +623,7 @@
         <option value="diabetes">Diabetes</option>
       </select>
       <button class="btn btn-primary" onclick="doSearch()"><i class="fas fa-search"></i> Search</button>
+      <button class="btn btn-outline" id="nearme-btn" onclick="toggleNearMe()" title="Only show pharmacies near me"><i class="fas fa-location-arrow"></i> Near Me</button>
     </div>
     <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:18px 20px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -735,6 +743,7 @@
       <button class="profile-tab" onclick="switchProfileTab(&#39;orders&#39;)">📦 Orders</button>
       <button class="profile-tab" onclick="switchProfileTab(&#39;favourites&#39;)">❤️ Favourites</button>
       <button class="profile-tab" onclick="switchProfileTab(&#39;reminders&#39;)">⏰ Reminders</button>
+      <button class="profile-tab" onclick="switchProfileTab(&#39;family&#39;)">👪 Family</button>
       <button class="profile-tab" onclick="switchProfileTab(&#39;security&#39;)">🔒 Security</button>
     </div>
 
@@ -788,11 +797,36 @@
               <option>Daily</option><option>Weekly</option><option>Twice Daily</option><option>As Needed</option>
             </select>
           </div>
-          <div class="form-group"><label>Notes</label><input type="text" class="form-control" id="rem-notes" placeholder="Optional"></div>
+          <div class="form-group"><label>For</label>
+            <select class="form-control" id="rem-family"><option value="">Myself</option></select>
+          </div>
         </div>
+        <div class="form-group"><label>Notes</label><input type="text" class="form-control" id="rem-notes" placeholder="Optional"></div>
         <button class="btn btn-primary btn-sm" onclick="addReminder()"><i class="fas fa-plus"></i> Add Reminder</button>
       </div>
       <div id="reminders-list"></div>
+    </div>
+
+    <!-- FAMILY TAB -->
+    <div id="ptab-family" style="display:none;">
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin-bottom:16px;">👪 Add Family Member</h3>
+        <p style="color:var(--text2);font-size:.85rem;margin-bottom:16px;">Manage medicines, prescriptions &amp; reminders for your whole family from one account.</p>
+        <div class="form-row">
+          <div class="form-group"><label>Name</label><input type="text" class="form-control" id="fam-name" placeholder="e.g. Amma"></div>
+          <div class="form-group"><label>Relation</label>
+            <select class="form-control" id="fam-relation">
+              <option>Parent</option><option>Spouse</option><option>Child</option><option>Sibling</option><option>Grandparent</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Age</label><input type="number" class="form-control" id="fam-age" placeholder="Optional"></div>
+          <div class="form-group"><label>Known Allergies</label><input type="text" class="form-control" id="fam-allergies" placeholder="Optional"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addFamilyMember()"><i class="fas fa-user-plus"></i> Add Member</button>
+      </div>
+      <div id="family-list"></div>
     </div>
 
     <!-- SECURITY TAB -->
@@ -1033,14 +1067,45 @@ async function doSearch() {
   }
 }
 
+// ============ NEAR ME FILTER ============
+let nearMeActive = false;
+let nearMeStoreIds = null; // Set of store IDs within radius, or null if not filtering
+
+function toggleNearMe() {
+  const btn = document.getElementById('nearme-btn');
+  if (nearMeActive) {
+    nearMeActive = false; nearMeStoreIds = null;
+    btn.classList.remove('btn-primary'); btn.classList.add('btn-outline');
+    if (lastSearchData) renderSearchResults(lastSearchData, lastSearchQuery);
+    return;
+  }
+  if (!navigator.geolocation) return showToast('Location not supported on this device', 'error');
+  showToast('📍 Getting your location...', 'info');
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    try {
+      const res = await fetch(API + '/api/stores/nearby?lat=' + pos.coords.latitude + '&lng=' + pos.coords.longitude + '&radius=15');
+      const stores = await res.json();
+      nearMeStoreIds = new Set(stores.map(s => s._id));
+      nearMeActive = true;
+      btn.classList.remove('btn-outline'); btn.classList.add('btn-primary');
+      showToast(stores.length + ' pharmacies found within 15km', 'success');
+      if (lastSearchData) renderSearchResults(lastSearchData, lastSearchQuery);
+    } catch (e) { showToast('Could not fetch nearby stores', 'error'); }
+  }, () => showToast('Location permission denied', 'error'));
+}
+
+let lastSearchData = null, lastSearchQuery = '';
+
 function renderSearchResults(data, q) {
+  lastSearchData = data; lastSearchQuery = q;
   const el = document.getElementById('search-results');
   if (!data.medicines || data.medicines.length === 0) {
     el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text2);"><i class="fas fa-pills" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No medicines found for "' + q + '"</div>';
     return;
   }
   el.innerHTML = data.medicines.map(med => {
-    const prices = med.stores || [];
+    let prices = med.stores || [];
+    if (nearMeActive && nearMeStoreIds) prices = prices.filter(s => nearMeStoreIds.has(s.storeId));
     const bestPrice = prices.length ? Math.min(...prices.map(s => s.price)) : 0;
     return `
     <div class="med-card">
@@ -1081,6 +1146,34 @@ async function showMedDetail(id) {
     const res = await fetch(API + '/api/medicines/' + id + '/fda');
     const data = await res.json();
     document.getElementById('med-modal-name').textContent = data.name || 'Medicine Details';
+
+    let altHtml = '';
+    try {
+      const altRes = await fetch(API + '/api/medicines/' + id + '/alternatives');
+      const altData = await altRes.json();
+      const cheaper = (altData.alternatives || []).filter(a => a.savings > 0);
+      if (cheaper.length) {
+        altHtml = `
+        <div class="card card-sm" style="margin-bottom:12px;background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.3);">
+          <b>💰 Save with Generics — same salt, lower price:</b>
+          <div style="margin-top:8px;display:grid;gap:6px;">
+            ${cheaper.map(a => `
+              <div style="display:flex;justify-content:space-between;align-items:center;background:white;border-radius:8px;padding:8px 10px;">
+                <div>
+                  <div style="font-weight:700;font-size:.85rem;">${a.name}</div>
+                  <div style="font-size:.72rem;color:var(--text2);">${a.genericName || ''}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:800;color:var(--success);font-size:.9rem;">₹${a.lowestPrice.toFixed(2)}</div>
+                  <div style="font-size:.7rem;color:var(--success);">Save ₹${a.savings.toFixed(2)} (${a.savingsPct}%)</div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <p style="font-size:.7rem;color:var(--text2);margin-top:8px;">Same active ingredient. Confirm with your doctor/pharmacist before switching.</p>
+        </div>`;
+      }
+    } catch (e) { /* alternatives are a bonus — never block the modal */ }
+
     document.getElementById('med-modal-body').innerHTML = `
       <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
         ${data.category ? '<span class="badge">' + data.category + '</span>' : ''}
@@ -1088,6 +1181,7 @@ async function showMedDetail(id) {
         ${data.requiresPrescription ? '<span class="badge" style="border-color:var(--warning);color:var(--warning);">Rx Required</span>' : ''}
       </div>
       ${data.description ? '<p style="color:var(--text2);margin-bottom:16px;">' + data.description + '</p>' : ''}
+      ${altHtml}
       ${data.fdaIndications ? '<div class="card card-sm" style="margin-bottom:12px;"><b>Uses:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaIndications.substring(0,300) + '...</p></div>' : ''}
       ${data.fdaSideEffects ? '<div class="card card-sm" style="margin-bottom:12px;background:rgba(239,68,68,.05);border-color:rgba(239,68,68,.2);"><b>⚠️ Side Effects:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaSideEffects.substring(0,300) + '...</p></div>' : ''}
       ${data.fdaDosage ? '<div class="card card-sm" style="margin-bottom:12px;"><b>Dosage:</b><p style="color:var(--text2);font-size:.88rem;margin-top:6px;">' + data.fdaDosage.substring(0,300) + '...</p></div>' : ''}
@@ -1131,8 +1225,9 @@ function showPage(page) {
   if (navEl) navEl.classList.add('active');
   if (page === 'map') initMap();
   if (page === 'orders') loadOrders();
-  if (page === 'profile') { loadProfile(); loadFavourites(); loadReminders(); loadProfileOrders(); }
+  if (page === 'profile') { loadProfile(); loadFavourites(); loadReminders(); loadProfileOrders(); loadFamilyMembers(); }
   if (page === 'admin') loadAdmin();
+  if (page === 'search') loadMyPrescriptions();
   window.scrollTo(0,0);
 }
 
@@ -1268,6 +1363,7 @@ async function loadOrders() {
   try {
     const res = await fetch(API + '/api/orders/my-orders', {headers:{'Authorization':'Bearer '+token}});
     const orders = await res.json();
+    window.lastOrders = orders;
     const el = document.getElementById('orders-list');
     if (!orders.length) { el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text2);"><i class="fas fa-box" style="font-size:3rem;margin-bottom:16px;display:block;"></i>No orders yet</div>'; return; }
     el.innerHTML = orders.map(o => `
@@ -1286,6 +1382,7 @@ async function loadOrders() {
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-outline btn-sm" onclick="showTracking('${o._id}','${o.status}')"><i class="fas fa-map-marker-alt"></i> Track Order</button>
           <button class="btn btn-outline btn-sm" onclick="downloadInvoice('${o._id}')"><i class="fas fa-file-invoice"></i> Invoice</button>
+          <button class="btn btn-primary btn-sm" onclick="reorderOrder('${o._id}')"><i class="fas fa-redo"></i> Reorder</button>
         </div>
       </div>`).join('');
   } catch(e) { console.log(e); }
@@ -1326,6 +1423,30 @@ function downloadInvoice(orderId) {
   showToast('Invoice for #' + orderId.slice(-6) + ' — Feature active! Connect MongoDB for full invoice.', 'info');
 }
 
+// ============ REORDER (Chronic Patient Auto-Refill) ============
+function reorderOrder(orderId) {
+  const order = (window.lastOrders || []).find(o => o._id === orderId);
+  if (!order) return showToast('Could not find that order', 'error');
+  if (!order.items || !order.items.length) return showToast('This order has no items to reorder', 'error');
+
+  const outOfStockNames = [];
+  cart = [];
+  cartStore = order.store?._id || order.store;
+  order.items.forEach(it => {
+    const med = it.medicine;
+    if (!med) return;
+    // Re-check current stock/price at this store before adding — prices/stock may have changed since the original order
+    cart.push({ medId: med._id, name: med.name, price: it.price, storeId: cartStore, storeName: order.store?.name || 'Pharmacy', qty: it.quantity || 1 });
+  });
+
+  if (!cart.length) return showToast('None of the items in this order could be re-added', 'error');
+  localStorage.setItem('cart', JSON.stringify(cart));
+  localStorage.setItem('cartStore', cartStore);
+  updateCartBadge();
+  showToast(cart.length + ' item(s) added to cart from your last order 🔁', 'success');
+  openCartModal();
+}
+
 // ============ MAP ============
 async function initMap() {
   if (map) return;
@@ -1356,6 +1477,18 @@ async function initMap() {
 }
 
 // ============ MEDIBOT ============
+// Small known-interaction table for the "check my interactions" feature.
+// This is NOT exhaustive medical advice — it's a basic local safety flag.
+const KNOWN_INTERACTIONS = [
+  { pair: ['aspirin', 'ibuprofen'], risk: 'Both are NSAIDs/blood-thinning — taking together raises bleeding & stomach ulcer risk.' },
+  { pair: ['warfarin', 'aspirin'], risk: 'Aspirin can significantly increase bleeding risk when combined with Warfarin.' },
+  { pair: ['metformin', 'alcohol'], risk: 'Alcohol with Metformin raises the risk of lactic acidosis.' },
+  { pair: ['paracetamol', 'alcohol'], risk: 'Combining with heavy alcohol use raises liver damage risk.' },
+  { pair: ['amoxicillin', 'methotrexate'], risk: 'Amoxicillin can raise Methotrexate levels to toxic amounts.' },
+];
+
+let lastBotMedicine = null; // remembers the last medicine discussed, for follow-up questions like "cheaper alternative?"
+
 function sendBotMsg() {
   const input = document.getElementById('bot-input');
   const msg = input.value.trim();
@@ -1363,12 +1496,11 @@ function sendBotMsg() {
   input.value = '';
   appendBotMsg(msg, 'user');
   appendBotMsg('...', 'bot', 'typing-indicator');
-  // Use OpenFDA / knowledge base
   setTimeout(async () => {
     document.querySelector('.typing-indicator')?.remove();
     const reply = await getBotReply(msg);
     appendBotMsg(reply, 'bot');
-  }, 1000);
+  }, 600);
 }
 
 function botQuick(msg) {
@@ -1378,15 +1510,62 @@ function botQuick(msg) {
 
 async function getBotReply(msg) {
   const lower = msg.toLowerCase();
+
+  // 1. Real medicine search — actual price/stock from our own database
+  const findMatch = lower.match(/(?:find|search|price of|cost of)\s+(.+)/);
+  if (findMatch) {
+    const q = findMatch[1].trim();
+    try {
+      const res = await fetch(API + '/api/medicines/search?q=' + encodeURIComponent(q));
+      const results = await res.json();
+      if (results.length) {
+        const m = results[0];
+        lastBotMedicine = m;
+        return `💊 <b>${m.name}</b>${m.genericName ? ' (' + m.genericName + ')' : ''}<br>` +
+          (m.lowestPrice != null ? `Lowest price: ₹${m.lowestPrice} across ${m.storeCount} store(s)<br>` : 'Not currently in stock anywhere.<br>') +
+          `Ask me "cheaper alternative" to see generic options, or search "${m.name}" on the Search page to order.`;
+      }
+      return `🔍 Couldn't find "${q}" in our database. Try the Search page for a broader look.`;
+    } catch (e) { return `⚠️ Search failed right now, please try the Search page directly.`; }
+  }
+
+  // 2. Cheaper generic alternative for the last discussed medicine
+  if (lower.includes('cheap') && (lower.includes('alternative') || lower.includes('generic') || lower.includes('option'))) {
+    if (!lastBotMedicine) return `🔍 Search for a medicine first (e.g. "find Crocin"), then ask me for a cheaper alternative.`;
+    try {
+      const res = await fetch(API + '/api/medicines/' + lastBotMedicine._id + '/alternatives');
+      const data = await res.json();
+      const cheaper = (data.alternatives || []).filter(a => a.savings > 0);
+      if (!cheaper.length) return `✅ ${lastBotMedicine.name} is already the cheapest option we have for its salt composition.`;
+      return `💰 Cheaper generic alternatives to <b>${lastBotMedicine.name}</b>:<br>` +
+        cheaper.slice(0,3).map(a => `• ${a.name} — ₹${a.lowestPrice.toFixed(2)} (save ₹${a.savings.toFixed(2)}, ${a.savingsPct}%)`).join('<br>') +
+        `<br><br>Same active ingredient — confirm with your doctor before switching.`;
+    } catch (e) { return `⚠️ Couldn't fetch alternatives right now.`; }
+  }
+
+  // 3. Interaction check across the person's OWN active reminders (real data, not generic text)
+  if (lower.includes('my interaction') || lower.includes('check my medicine') || lower.includes('check interaction')) {
+    if (!token) return `🔐 Please login first — I'll check interactions across the medicines in your reminders.`;
+    try {
+      const res = await fetch(API + '/api/profile/reminders', { headers: { Authorization: 'Bearer ' + token } });
+      const reminders = await res.json();
+      const names = reminders.map(r => r.medicineName.toLowerCase());
+      const flagged = KNOWN_INTERACTIONS.filter(k => k.pair.every(p => names.some(n => n.includes(p))));
+      if (!reminders.length) return `📋 You don't have any medicine reminders set up yet — add some in Profile → Reminders and I'll check them.`;
+      if (!flagged.length) return `✅ No known risky combinations found among your ${reminders.length} active reminder(s): ${reminders.map(r=>r.medicineName).join(', ')}.<br><br>This is a basic local check, not a substitute for a pharmacist's review.`;
+      return `⚠️ Possible interaction(s) found among your reminders:<br>` + flagged.map(f => `• <b>${f.pair.join(' + ')}</b>: ${f.risk}`).join('<br>') + `<br><br>Please confirm with your doctor or pharmacist.`;
+    } catch (e) { return `⚠️ Couldn't check your reminders right now.`; }
+  }
+
   if (lower.includes('side effect')) {
     const med = lower.replace(/side effects? of /,'').trim();
-    return `⚠️ Common side effects of ${med} may include nausea, dizziness, headache, and allergic reactions. Always consult your doctor for personalized advice. I can search OpenFDA for more specific information.`;
+    return `⚠️ Common side effects of ${med} may include nausea, dizziness, headache, and allergic reactions. Always consult your doctor for personalized advice. Try "find ${med}" for our database entry.`;
   }
   if (lower.includes('dosage') || lower.includes('dose')) {
     return `💊 Dosage varies by age, weight and condition. For adults, typical doses are usually taken every 4-8 hours. Always follow your doctor's prescription or package instructions. Never exceed the recommended dose.`;
   }
   if (lower.includes('interaction')) {
-    return `⚗️ Drug interactions can be serious. Always inform your doctor about all medicines you take, including vitamins and supplements. Use our search feature to find medicines and check with a pharmacist.`;
+    return `⚗️ Drug interactions can be serious. Ask me "check my interactions" to scan the medicines in your reminders, or always inform your doctor about everything you take.`;
   }
   if (lower.includes('fever') || lower.includes('pain')) {
     return `🌡️ For fever and pain relief, common options include:
@@ -1397,13 +1576,13 @@ async function getBotReply(msg) {
 Always consult a doctor if fever is above 103°F or persists over 3 days.`;
   }
   if (lower.includes('hello') || lower.includes('hi')) {
-    return `👋 Hello! I'm MediBot v5.0. I can help you with medicine information, dosages, side effects, drug interactions and more. What would you like to know?`;
+    return `👋 Hello! I'm MediBot. Try: "find Paracetamol", "cheaper alternative", or "check my interactions" — I use your real MediFind data, not just generic answers.`;
   }
-  return `🔍 I can help with medicine information! Try asking about:
-• Side effects of a specific medicine
-• Dosage information
-• Drug interactions
-• Medicines for specific conditions
+  return `🔍 I can help with:
+• "find <medicine>" — real price & stock from our database
+• "cheaper alternative" — generic substitutes after a search
+• "check my interactions" — scans your saved reminders
+• Side effects, dosage & general medicine info
 
 For personalized medical advice, please consult a healthcare professional. 👨‍⚕️`;
 }
@@ -1544,7 +1723,7 @@ async function loadReminders() {
       <div class="reminder-card">
         <div class="reminder-info">
           <h4>${r.medicineName}</h4>
-          <p>⏰ ${r.time} · ${r.frequency} ${r.notes ? '· ' + r.notes : ''}</p>
+          <p>⏰ ${r.time} · ${r.frequency} ${r.familyMemberName ? '· 👪 ' + r.familyMemberName : ''} ${r.notes ? '· ' + r.notes : ''}</p>
         </div>
         <button class="btn btn-danger btn-sm" onclick="deleteReminder('${r._id}')"><i class="fas fa-trash"></i></button>
       </div>`).join('');
@@ -1557,12 +1736,15 @@ async function addReminder() {
   const time = document.getElementById('rem-time').value;
   const frequency = document.getElementById('rem-freq').value;
   const notes = document.getElementById('rem-notes').value;
+  const famSelect = document.getElementById('rem-family');
+  const familyMemberId = famSelect ? famSelect.value : '';
+  const familyMemberName = famSelect && famSelect.selectedOptions[0] ? famSelect.selectedOptions[0].dataset.name : '';
   if (!medicineName || !time) return showToast('Medicine name and time required', 'error');
   try {
     const res = await fetch(API + '/api/profile/reminders', {
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body: JSON.stringify({medicineName, time, frequency, notes})
+      body: JSON.stringify({medicineName, time, frequency, notes, familyMemberId, familyMemberName})
     });
     if (res.ok) { showToast('Reminder added! ⏰', 'success'); document.getElementById('rem-name').value=''; loadReminders(); }
   } catch(e) {}
@@ -1577,12 +1759,73 @@ async function deleteReminder(id) {
 }
 
 function switchProfileTab(tab) {
-  ['info','orders','favourites','reminders','security'].forEach(t => {
+  ['info','orders','favourites','reminders','family','security'].forEach(t => {
     document.getElementById('ptab-' + t).style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('.profile-tab').forEach((b,i) => {
-    b.classList.toggle('active', ['info','orders','favourites','reminders','security'][i] === tab);
+    b.classList.toggle('active', ['info','orders','favourites','reminders','family','security'][i] === tab);
   });
+  if (tab === 'family') loadFamilyMembers();
+}
+
+// ============ FAMILY MEMBERS ============
+async function loadFamilyMembers() {
+  if (!token) return;
+  try {
+    const res = await fetch(API + '/api/profile/family', { headers: { Authorization: 'Bearer ' + token } });
+    const members = await res.json();
+
+    const listEl = document.getElementById('family-list');
+    if (listEl) {
+      listEl.innerHTML = members.length ? members.map(m => `
+        <div class="card card-sm" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div>
+            <div style="font-weight:700;">${m.name} <span style="font-weight:400;color:var(--text2);font-size:.8rem;">· ${m.relation}${m.age ? ', ' + m.age + 'y' : ''}</span></div>
+            ${m.allergies ? '<div style="font-size:.78rem;color:var(--warning);margin-top:2px;">⚠️ Allergies: ' + m.allergies + '</div>' : ''}
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="deleteFamilyMember('${m._id}')"><i class="fas fa-trash"></i></button>
+        </div>`).join('') : '<div style="color:var(--text2);text-align:center;padding:20px;">No family members added yet</div>';
+    }
+
+    // Populate the reminder "For" dropdown too
+    const famSelect = document.getElementById('rem-family');
+    if (famSelect) {
+      famSelect.innerHTML = '<option value="">Myself</option>' +
+        members.map(m => `<option value="${m._id}" data-name="${m.name}">${m.name} (${m.relation})</option>`).join('');
+    }
+  } catch (e) { console.error('Failed to load family members', e); }
+}
+
+async function addFamilyMember() {
+  const name = document.getElementById('fam-name').value.trim();
+  if (!name) return showToast('Please enter a name', 'error');
+  const body = {
+    name,
+    relation: document.getElementById('fam-relation').value,
+    age: document.getElementById('fam-age').value || null,
+    allergies: document.getElementById('fam-allergies').value.trim()
+  };
+  try {
+    const res = await fetch(API + '/api/profile/family', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error((await res.json()).message || 'Failed to add member');
+    showToast(name + ' added to family ✅', 'success');
+    document.getElementById('fam-name').value = '';
+    document.getElementById('fam-age').value = '';
+    document.getElementById('fam-allergies').value = '';
+    loadFamilyMembers();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteFamilyMember(id) {
+  try {
+    await fetch(API + '/api/profile/family/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+    showToast('Family member removed', 'info');
+    loadFamilyMembers();
+  } catch (e) { showToast('Failed to remove', 'error'); }
 }
 
 // ============ ADMIN ============
@@ -1632,18 +1875,43 @@ async function switchAdminTab(tab) {
   }
   if (tab === 'inventory') {
     const stores = await (await fetch(API + '/api/stores')).json();
+    window.adminStores = stores;
+    const storeOptions = stores.map(s => `<option value="${s._id}">${s.name}</option>`).join('');
+    const currentStoreId = window.adminCurrentStoreId || stores[0]?._id;
+    window.adminCurrentStoreId = currentStoreId;
     if (stores.length > 0) {
-      const inv = await (await fetch(API + '/api/stores/' + stores[0]._id + '/inventory')).json();
-      el.innerHTML = `<div style="overflow-x:auto;"><table><thead><tr><th>Medicine</th><th>Stock</th><th>Price</th><th>Discount</th></tr></thead><tbody>
+      const inv = await (await fetch(API + '/api/stores/' + currentStoreId + '/inventory')).json();
+      el.innerHTML = `
+        <div style="margin-bottom:14px;">
+          <select class="form-control" style="width:260px;display:inline-block;" onchange="window.adminCurrentStoreId=this.value;switchAdminTab('inventory')">${storeOptions}</select>
+        </div>
+        <div style="overflow-x:auto;"><table><thead><tr><th>Medicine</th><th>Stock</th><th>Price (₹)</th><th>Discount (%)</th><th></th></tr></thead><tbody>
         ${inv.map(i => `<tr>
           <td>${i.medicine?.name || 'Unknown'}</td>
-          <td><span class="stock-badge ${i.stock>10?'in':i.stock>0?'low':'out'}">${i.stock}</span></td>
-          <td>₹${i.price}</td>
-          <td>${i.discount||0}%</td>
+          <td><input type="number" min="0" class="form-control" style="width:80px;padding:4px 8px;" id="inv-stock-${i._id}" value="${i.stock}"></td>
+          <td><input type="number" min="0" step="0.01" class="form-control" style="width:90px;padding:4px 8px;" id="inv-price-${i._id}" value="${i.price}"></td>
+          <td><input type="number" min="0" max="100" class="form-control" style="width:70px;padding:4px 8px;" id="inv-disc-${i._id}" value="${i.discount||0}"></td>
+          <td><button class="btn btn-primary btn-sm" onclick="saveInventoryRow('${currentStoreId}','${i.medicine?._id}','${i._id}')"><i class="fas fa-save"></i></button></td>
         </tr>`).join('')}
       </tbody></table></div>`;
+    } else {
+      el.innerHTML = '<div style="color:var(--text2);text-align:center;padding:30px;">No stores yet</div>';
     }
   }
+}
+
+async function saveInventoryRow(storeId, medicineId, invId) {
+  const stock = parseInt(document.getElementById('inv-stock-' + invId).value, 10);
+  const price = parseFloat(document.getElementById('inv-price-' + invId).value);
+  const discount = parseInt(document.getElementById('inv-disc-' + invId).value, 10) || 0;
+  try {
+    await fetch(API + '/api/inventory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ store: storeId, medicine: medicineId, stock, price, discount })
+    });
+    showToast('Stock updated — live to all shoppers now ✅', 'success');
+  } catch (e) { showToast('Failed to update stock', 'error'); }
 }
 
 async function updateOrderStatus(orderId, status) {
@@ -1680,6 +1948,82 @@ async function loadHomeStats() {
 }
 
 function loadQuickMeds() {}
+
+// ============ PRESCRIPTION UPLOAD ============
+async function handlePresc(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!token) { showToast('Please login first to upload a prescription', 'error'); input.value = ''; return; }
+
+  showToast('Uploading "' + file.name + '"...', 'info');
+  try {
+    const formData = new FormData();
+    formData.append('prescription', file);
+    const res = await fetch(API + '/api/prescriptions/upload', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token },
+      body: formData
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Upload failed');
+    showToast('Prescription "' + file.name + '" uploaded! Pending pharmacist review.', 'success');
+    input.value = '';
+    loadMyPrescriptions();
+  } catch (e) {
+    showToast(e.message || 'Upload failed. Try again.', 'error');
+  }
+}
+
+async function loadMyPrescriptions() {
+  const el = document.getElementById('presc-list');
+  if (!el || !token) { if (el) el.innerHTML = ''; return; }
+  try {
+    const res = await fetch(API + '/api/prescriptions/mine', { headers: { Authorization: 'Bearer ' + token } });
+    const list = await res.json();
+    if (!Array.isArray(list) || !list.length) { el.innerHTML = ''; return; }
+    const statusColor = { pending: '#f59e0b', verified: '#16a34a', rejected: '#dc2626' };
+    el.innerHTML = '<div style="font-size:.78rem;font-weight:700;color:var(--text2);margin-bottom:6px;">YOUR PRESCRIPTIONS</div>' +
+      list.slice().reverse().map(p => `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #f1f5f9;border-radius:8px;padding:.55rem .8rem;margin-top:.4rem;">
+          <div style="font-size:.85rem;color:#1e293b;">📄 ${p.originalName}</div>
+          <span style="font-size:.72rem;font-weight:700;color:${statusColor[p.status] || '#64748b'};text-transform:capitalize;">${p.status}</span>
+        </div>`).join('');
+  } catch (e) { el.innerHTML = ''; }
+}
+
+// ============ VOICE SEARCH (Web Speech API) ============
+function startVoiceSearch(inputId) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { showToast('Voice search not supported in this browser. Try Chrome.', 'error'); return; }
+
+  const langSelect = document.getElementById('voice-lang');
+  const lang = langSelect ? langSelect.value : 'en-IN';
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = lang;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  const micBtns = document.querySelectorAll('#voice-btn-home, #voice-btn-search');
+  micBtns.forEach(b => { if (b) { b.classList.add('listening'); b.innerHTML = '<i class="fas fa-microphone" style="color:var(--danger);"></i>'; } });
+  showToast('🎙️ Listening...', 'info');
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    const input = document.getElementById(inputId);
+    if (input) input.value = transcript;
+    showToast('Heard: "' + transcript + '"', 'success');
+    doSearch();
+  };
+  recognition.onerror = (event) => {
+    if (event.error === 'not-allowed') showToast('Microphone permission denied.', 'error');
+    else if (event.error !== 'aborted') showToast('Could not hear you, try again.', 'error');
+  };
+  recognition.onend = () => {
+    micBtns.forEach(b => { if (b) { b.classList.remove('listening'); b.innerHTML = '<i class="fas fa-microphone"></i>'; } });
+  };
+  recognition.start();
+}
 
 function doSearchDirect(name) {
   document.getElementById('home-search').value = name;
