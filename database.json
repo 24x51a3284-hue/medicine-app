@@ -6370,7 +6370,7 @@
       "medicine": "m001",
       "price": 170,
       "originalPrice": 170,
-      "stock": 181,
+      "stock": 177,
       "discount": 0,
       "expiryDate": "2026-06-17",
       "updatedAt": "2026-03-11T22:03:36.031911"
@@ -9043,7 +9043,7 @@
       "medicine": "m244",
       "price": 336,
       "originalPrice": 386,
-      "stock": 74,
+      "stock": 72,
       "discount": 15,
       "expiryDate": "2027-10-09",
       "updatedAt": "2026-03-11T22:03:36.033225"
@@ -48486,13 +48486,106 @@
       "phone": "8328000888",
       "loyaltyPoints": 0,
       "createdAt": "2026-08-13T18:48:36.772Z"
+    },
+    {
+      "_id": "1786950231202",
+      "name": "fawaz",
+      "email": "fawaz@gmail.com",
+      "password": "$2a$10$lZUsTpIQPo2v.bYj2zn6OuXuNIaBJJvdBiH.3t2YZowymSdaMG/9W",
+      "role": "user",
+      "phone": "8328335457",
+      "loyaltyPoints": 124,
+      "createdAt": "2026-08-17T07:03:51.284Z"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "_id": "1787110265392",
+      "user": "1786950231202",
+      "store": "str1",
+      "items": [
+        {
+          "medicine": "m001",
+          "quantity": 2
+        },
+        {
+          "medicine": "m244",
+          "quantity": 1
+        }
+      ],
+      "totalAmount": 625.6,
+      "originalAmount": 625.6,
+      "discountAmount": 0,
+      "couponApplied": null,
+      "paymentMethod": "cash",
+      "paymentId": null,
+      "paymentStatus": "pending",
+      "status": "pending",
+      "timeline": [
+        {
+          "status": "pending",
+          "timestamp": "2026-08-19T03:31:05.393Z"
+        }
+      ],
+      "createdAt": "2026-08-19T03:31:05.393Z"
+    },
+    {
+      "_id": "1787110268782",
+      "user": "1786950231202",
+      "store": "str1",
+      "items": [
+        {
+          "medicine": "m001",
+          "quantity": 2
+        },
+        {
+          "medicine": "m244",
+          "quantity": 1
+        }
+      ],
+      "totalAmount": 625.6,
+      "originalAmount": 625.6,
+      "discountAmount": 0,
+      "couponApplied": null,
+      "paymentMethod": "cash",
+      "paymentId": null,
+      "paymentStatus": "pending",
+      "status": "pending",
+      "timeline": [
+        {
+          "status": "pending",
+          "timestamp": "2026-08-19T03:31:08.782Z"
+        }
+      ],
+      "createdAt": "2026-08-19T03:31:08.782Z"
+    }
+  ],
   "notifications": [],
   "reminders": [],
   "favourites": [],
-  "prescriptions": [],
+  "prescriptions": [
+    {
+      "_id": "rx1786950538792",
+      "user": "1786950231202",
+      "fileName": "1786950231202_1786950538785.pdf",
+      "originalName": "csp 6(15)(31).pdf",
+      "mimeType": "application/pdf",
+      "size": 2355199,
+      "status": "pending",
+      "uploadedAt": "2026-08-17T07:08:58.792Z"
+    },
+    {
+      "_id": "rx1787110331143",
+      "user": "1786950231202",
+      "originalName": "DATA ENGINEERING IMP QUESTIONS FOR SEM.pdf",
+      "mimeType": "application/pdf",
+      "size": 116682,
+      "status": "pending",
+      "uploadedAt": "2026-08-19T03:32:11.143Z",
+      "fileName": "1786950231202_1787110331140.pdf",
+      "storage": "local"
+    }
+  ],
   "coupons": [],
   "resetOTPs": [],
   "pushSubscriptions": []

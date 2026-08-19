@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { readDB, writeDB } = require('../../db');
 const { authMiddleware } = require('../middleware/auth');
+const { uploadLimiter } = require('../middleware/rateLimiter');
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
@@ -64,7 +65,7 @@ function uploadBufferToCloudinary(buffer, publicIdPrefix) {
 }
 
 // ── POST /api/prescriptions/upload — upload a prescription image/pdf ──
-router.post('/upload', authMiddleware, (req, res) => {
+router.post('/upload', authMiddleware, uploadLimiter, (req, res) => {
   upload.single('prescription')(req, res, async (err) => {
     if (err) return res.status(400).json({ message: err.message });
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
