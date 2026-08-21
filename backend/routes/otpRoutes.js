@@ -1,6 +1,8 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { readDB, writeDB } = require('../../db');
+const { JWT_SECRET } = require('../config');
 const { otpLimiter } = require('../middleware/rateLimiter');
 
 // In-memory OTP store (use Redis in production)
@@ -75,7 +77,6 @@ router.post('/login', (req, res) => {
   try {
     const { phone, otp } = req.body;
     const stored = otpStore[phone];
-    const jwt = require('jsonwebtoken');
     if (!stored || Date.now() > stored.expires || stored.otp !== otp) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
@@ -96,7 +97,7 @@ router.post('/login', (req, res) => {
       db.users.push(user);
       writeDB(db);
     }
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET || 'secret123', { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ success: true, token, user: { id: user._id, name: user.name, phone, role: user.role, loyaltyPoints: user.loyaltyPoints || 0 } });
   } catch (e) {
     res.status(500).json({ message: e.message });

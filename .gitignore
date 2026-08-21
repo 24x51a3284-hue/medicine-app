@@ -1,3 +1,14 @@
+# Secrets & environment
 .env
+
+# User data (contains real users/orders/prescriptions — never commit)
+database.json
+
+# Uploaded files (prescriptions etc.)
 uploads/
+
+# Dependencies
 node_modules/
+
+# OS / editor junk
+.DS_Store
