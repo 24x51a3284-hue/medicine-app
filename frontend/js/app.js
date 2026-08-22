@@ -131,14 +131,31 @@ let searchTimer;
 function searchMeds(q) { clearTimeout(searchTimer); if (!q || q.length < 2) return; searchTimer = setTimeout(() => doSearch(q), 350); }
 
 async function doSearch(q) {
+  const qTrimmed = (q || '').trim();
   const el = document.getElementById('searchResults');
-  el.innerHTML = `<div class="loading"><div class="spinner"></div><p style="color:var(--muted);font-size:.85rem">Searching for "<strong>${q}</strong>"...</p></div>`;
+  
+  // Empty or whitespace-only query returns empty results state
+  if (!qTrimmed) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-pills"></i><h3>Enter a medicine name</h3><p>Type a medicine name to search</p></div>`;
+    allResults = [];
+    return;
+  }
+  
+  // Unrelated short query returns empty
+  if (qTrimmed.length < 2) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-pills"></i><h3>No results found</h3><p>Try a more specific medicine name</p></div>`;
+    allResults = [];
+    return;
+  }
+  
+  el.innerHTML = `<div class="loading"><div class="spinner"></div><p style="color:var(--muted);font-size:.85rem">Searching for "<strong>${qTrimmed}</strong>"...</p></div>`;
   try {
-    const meds = await get('/medicines/search?q=' + encodeURIComponent(q));
-    allResults = meds;
-    renderResults(meds, q);
+    const meds = await get('/medicines/search?q=' + encodeURIComponent(qTrimmed));
+    allResults = meds || [];
+    renderResults(meds, qTrimmed);
   } catch {
-    el.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Connection error</h3><p>Please check server is running</p></div>`;
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>No results found</h3><p>Try different keywords or check spelling</p></div>`;
+    allResults = [];
   }
 }
 
@@ -173,6 +190,45 @@ function filterR(type, el) {
   else if (type === 'avail') f = f.filter(m => m.availableIn > 0);
   else if (type === 'disc') f = f.filter(m => m.lowestPrice !== null);
   renderResults(f, document.getElementById('mainSearch').value);
+}
+
+async function loadMyList() {
+  const el = document.getElementById('myListContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading your medicines...</p></div>';
+  try {
+    const data = await get('/medicines/my-list');
+    if (!data || !data.length) {
+      el.innerHTML = `<div class="empty-state"><i class="fas fa-prescription-bottle"></i><h3>No medicines in your list</h3><p>Add medicines from search results</p></div>`;
+      return;
+    }
+    el.innerHTML = `
+      <p style="color:var(--muted);font-size:.83rem;margin-bottom:1rem">Your medicines (${data.length})</p>
+    ` + data.map((m, i) => `
+      <div class="med-card" style="padding:12px;border-radius:12px;margin:4px 0;background:var(--bg3);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="mc-name" style="font-weight:700;">${m.name}</span>
+          <span class="badge bg" style="font-size:.75rem;">${m.stock || 0} in stock</span>
+        </div>
+        <div style="font-size:.75rem;color:var(--text2);margin-top:4px;">${m.genericName || ''}</div>
+      </div>`).join('');
+    // Add remove buttons
+    document.querySelectorAll('#myListContent .med-card').forEach((card, idx) => {
+      const m = data[idx];
+      const removeBtn = card.querySelector('button');
+      if (!removeBtn) {
+        const removeHTML = `<button class="btn btn-danger btn-sm" onclick="removeFromMyList('${m._id}')" style="margin-top:6px;padding:4px 8px;font-size:.7rem;">Remove</button>`;
+        card.innerHTML += removeHTML;
+      }
+    });
+  } catch (err) {
+    el.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Failed to load list</h3></div>`;
+  }
+}
+
+function removeFromMyList(medId) {
+  if (!confirm('Remove this medicine from your list?')) return;
+  post('/medicines/my-list', { medId }).then(() => loadMyList()).catch(err => showToast('Failed to remove'));
 }
 
 // ── MEDICINE DETAIL ────────────────────────────────────────────────────────
