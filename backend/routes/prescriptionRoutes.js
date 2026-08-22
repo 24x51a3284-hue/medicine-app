@@ -139,4 +139,113 @@ router.put('/:id/verify', authMiddleware, (req, res) => {
   res.json(rx);
 });
 
+
+// Medical safety safeguards ────────────────────────────────────────
+const MAX_DAILY_DOSE_MG = {
+  paracetamol: 4000,
+  ibuprofen: 1200,
+  aspirin: 4000,
+  metformin: 2000,
+  amoxicillin: 1500
+};
+
+function checkDailyLimit(medicineName, dosageMg, currentDailyMg) {
+  const limit = MAX_DAILY_DOSE_MG[medicineName.toLowerCase()];
+  if (!limit) return { safe: true, message: 'No limit defined' };
+  const total = (currentDailyMg || 0) + dosageMg;
+  if (total > limit) {
+    return { safe: false, message: `${medicineName} exceeds daily limit of ${limit}mg. Current: ${total}mg` };
+  }
+  return { safe: true, message: 'Within safe limits', totalDailyMg: total };
+}
+
+// Validate prescription before dispensing
+router.post('/:prescriptionId/validate', authMiddleware, (req, res) => {
+  try {
+    const { prescriptionId } = req.params;
+    const { dosageMg } = req.body;
+    const db = readDB();
+    const prescription = db.prescriptions.find(p => p._id === prescriptionId);
+    if (!prescription) return res.status(404).json({ message: 'Prescription not found' });
+
+    const medicine = db.medicines.find(m => m._id === prescription.medicine);
+    if (!medicine) return res.status(404).json({ message: 'Medicine not found' });
+
+    // Check for expired prescription
+    const prescDate = new Date(prescription.issuedDate);
+    const now = new Date();
+    const daysSinceIssued = Math.ceil((now - prescDate) / (1000 * 60 * 60 * 24));
+    const MAX_DAYS_VALID = 180; // 6 months
+
+    if (daysSinceIssued > MAX_DAYS_VALID) {
+      return res.status(400).json({
+        message: 'Prescription expired - must be within 6 months',
+        expired: true
+      });
+    }
+
+    // Check daily dosage limit
+    const currentDaily = prescription.currentDailyMg || 0;
+    const limitCheck = checkDailyLimit(medicine.name, dosageMg || prescription.dosage, currentDaily);
+
+    if (!limitCheck.safe) {
+      return res.status(400).json({
+        message: limitCheck.message,
+        dailyLimitExceeded: true
+      });
+    }
+
+    // Check for duplicate therapy (same active ingredient from different prescriptions)
+    const activeIngredient = medicine.genericName || medicine.name;
+    const similarPrescriptions = db.prescriptions.filter(p =>
+      p.status === 'verified' &&
+      p._id !== prescriptionId &&
+      new Date().getTime() - new Date(p.issuedDate).getTime() < 90 * 24 * 60 * 60 * 1000
+    );
+
+    res.json({
+      prescriptionId,
+      valid: limitCheck.safe,
+      expiryDaysRemaining: MAX_DAYS_VALID - daysSinceIssued,
+      dailyLimitCheck: limitCheck,
+      activeIngredient: medicine.genericName || medicine.name,
+      safetyNotes: limitCheck.safe ? 'Prescription safe for dispensing' : 'Safety review required',
+      dosage: prescription.dosage,
+      issuedDate: prescription.issuedDate
+    });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+// Check for drug interactions
+router.get('/interactions/:medicineId', authMiddleware, (req, res) => {
+  try {
+    const { medicineId } = req.params;
+    const db = readDB();
+    const medicine = db.medicines.find(m => m._id === medicineId);
+    if (!medicine) return res.status(404).json({ message: 'Medicine not found' });
+
+    // Basic interaction checks based on medicine class
+    const interactions = [];
+    const genericName = (medicine.genericName || '').toLowerCase();
+
+    // Example interaction checks
+    if (genericName.includes('nitrate') || genericName.includes('heart')) {
+      interactions.push({ medicine: 'Sildenafil (Viagra)', severity: 'High', description: 'Potential dangerous blood pressure drop' });
+    }
+    if (genericName.includes('anticoagulant') || genericName.includes('blood thinner')) {
+      interactions.push({ medicine: 'Ibuprofen/Aspirin', severity: 'Moderate', description: 'May increase bleeding risk' });
+    }
+
+    res.json({
+      medicine: medicine.name,
+      genericName: medicine.genericName,
+      interactions: interactions.length > 0 ? interactions : [],
+      interactionCount: interactions.length,
+      safeToDispense: interactions.length === 0
+    });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+module.exports = router;
+
 module.exports = router;

@@ -32,6 +32,40 @@ router.get('/nearby', (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+router.get('/in-stock', (req, res) => {
+  try {
+    const db = readDB();
+    const storesWithStock = [];
+    const seenStores = new Set();
+
+    db.stores.forEach(store => {
+      const inv = db.inventory.filter(i => i.store === store._id && i.stock > 0);
+      if (inv.length > 0 && !seenStores.has(store._id)) {
+        seenStores.add(store._id);
+        const medicineIds = [...new Set(inv.map(i => i.medicine))];
+        const medicines = medicineIds.map(medId => {
+          const med = db.medicines.find(m => m._id === medId);
+          const item = inv.find(i => i.medicine === medId);
+          return {
+            medicine: med ? med.name : 'Unknown',
+            price: item ? item.price : null,
+            stock: item ? item.stock : 0
+          };
+        });
+        storesWithStock.push({
+          _id: store._id,
+          name: store.name,
+          distance: store.distanceKm,
+          open: store.isOpen,
+          medicines
+        });
+      }
+    });
+
+    res.json(storesWithStock);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 router.get('/:id', (req, res) => {
   const store = readDB().stores.find(s => s._id === req.params.id);
   if (!store) return res.status(404).json({ message: 'Not found' });

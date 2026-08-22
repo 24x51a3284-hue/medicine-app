@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { readDB, writeDB } = require('../../db');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, isUser } = require('../middleware/auth');
 
 // Get profile
-router.get('/', authMiddleware, (req, res) => {
+router.get('/', isUser, (req, res) => {
   try {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);
@@ -23,7 +23,7 @@ router.get('/', authMiddleware, (req, res) => {
 
 // Update profile
 // BUG FIX #5: Return success:true and user object so frontend works
-router.put('/', authMiddleware, async (req, res) => {
+router.put('/', isUser, async (req, res) => {
   try {
     const { name, phone, address, age, bloodGroup, allergies } = req.body;
     const db = readDB();
@@ -44,7 +44,7 @@ router.put('/', authMiddleware, async (req, res) => {
 
 // Change password
 // BUG FIX #6: Route was missing from profileRoutes — frontend calls PUT /api/profile/change-password
-router.put('/change-password', authMiddleware, async (req, res) => {
+router.put('/change-password', isUser, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) return res.status(400).json({ message: 'Both passwords required' });
@@ -63,7 +63,7 @@ router.put('/change-password', authMiddleware, async (req, res) => {
 });
 
 // Reminders
-router.post('/reminders', authMiddleware, (req, res) => {
+router.post('/reminders', isUser, (req, res) => {
   try {
     const { medicineName, time, frequency, notes, familyMemberId, familyMemberName } = req.body;
     const db = readDB();
@@ -79,14 +79,14 @@ router.post('/reminders', authMiddleware, (req, res) => {
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-router.get('/reminders', authMiddleware, (req, res) => {
+router.get('/reminders', isUser, (req, res) => {
   try {
     const db = readDB();
     res.json((db.reminders || []).filter(r => r.userId === req.user.id));
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-router.delete('/reminders/:id', authMiddleware, (req, res) => {
+router.delete('/reminders/:id', isUser, (req, res) => {
   try {
     const db = readDB();
     if (!db.reminders) db.reminders = [];
@@ -97,7 +97,7 @@ router.delete('/reminders/:id', authMiddleware, (req, res) => {
 });
 
 // Favourites
-router.post('/favourites', authMiddleware, (req, res) => {
+router.post('/favourites', isUser, (req, res) => {
   try {
     const { medicineId } = req.body;
     const db = readDB();
@@ -111,7 +111,7 @@ router.post('/favourites', authMiddleware, (req, res) => {
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-router.get('/favourites', authMiddleware, (req, res) => {
+router.get('/favourites', isUser, (req, res) => {
   try {
     const db = readDB();
     const favs = (db.favourites || []).filter(f => f.userId === req.user.id).map(f => ({
@@ -121,7 +121,7 @@ router.get('/favourites', authMiddleware, (req, res) => {
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
 
-router.delete('/favourites/:medicineId', authMiddleware, (req, res) => {
+router.delete('/favourites/:medicineId', isUser, (req, res) => {
   try {
     const db = readDB();
     if (!db.favourites) db.favourites = [];
@@ -133,7 +133,7 @@ router.delete('/favourites/:medicineId', authMiddleware, (req, res) => {
 
 // Loyalty points
 // ── Family Members ────────────────────────────────────────────────
-router.get('/family', authMiddleware, (req, res) => {
+router.get('/family', isUser, (req, res) => {
   try {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);
@@ -142,7 +142,7 @@ router.get('/family', authMiddleware, (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.post('/family', authMiddleware, (req, res) => {
+router.post('/family', isUser, (req, res) => {
   try {
     const { name, relation, age, allergies, notes } = req.body;
     if (!name || !name.trim()) return res.status(400).json({ message: 'Name is required' });
@@ -165,7 +165,7 @@ router.post('/family', authMiddleware, (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.delete('/family/:memberId', authMiddleware, (req, res) => {
+router.delete('/family/:memberId', isUser, (req, res) => {
   try {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);
@@ -176,7 +176,215 @@ router.delete('/family/:memberId', authMiddleware, (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
-router.get('/loyalty', authMiddleware, (req, res) => {
+
+// User's medicine list ─────────────────────────────────────────
+router.get('/medicines/my-list', isUser, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    let list = user.medicineList;
+    if (!list) list = [];
+    res.json(list);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.post('/medicines/my-list', isUser, (req, res) => {
+  try {
+    const { action, medicineId } = req.body; // action: 'add' | 'remove'
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    let list = user.medicineList;
+    if (!list) list = [];
+    if (action === 'add' && !list.includes(medicineId)) list.push(medicineId);
+    if (action === 'remove' && list.includes(medicineId)) list = list.filter(id => id !== medicineId);
+    user.medicineList = list;
+    writeDB(db);
+    res.json({ list, count: list.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// Find pharmacies having all user's medicines ────────────────────
+router.post('/medicines/find-pharmacies', isUser, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const myList = user.medicineList || [];
+    if (!myList.length) return res.json({ pharmacies: [], message: 'Your medicine list is empty' });
+
+    const medInventory = {};
+    myList.forEach(medId => {
+      const items = db.inventory.filter(i => i.medicine === medId);
+      if (items.length) medInventory[medId] = items;
+    });
+
+    const pharmacyMatchCount = {};
+    myList.forEach(medId => {
+      const items = medInventory[medId] || [];
+      items.forEach(inv => {
+        const storeId = inv.store;
+        if (!pharmacyMatchCount[storeId]) pharmacyMatchCount[storeId] = 0;
+        pharmacyMatchCount[storeId]++;
+      });
+    });
+
+    const pharmacyTotal = {};
+    myList.forEach(medId => {
+      const items = medInventory[medId] || [];
+      items.forEach(inv => {
+        const storeId = inv.store;
+        if (!pharmacyTotal[storeId]) pharmacyTotal[storeId] = 0;
+        pharmacyTotal[storeId]++;
+      });
+    });
+
+    const results = [];
+    Object.keys(pharmacyMatchCount).forEach(storeId => {
+      const total = pharmacyTotal[storeId] || 0;
+      const match = pharmacyMatchCount[storeId] || 0;
+      const pct = myList.length > 0 ? Math.round((match / myList.length) * 100) : 0;
+      const store = db.stores.find(s => s._id === storeId);
+      results.push({
+        storeId,
+        storeName: store ? store.name : 'Unknown Store',
+        matchCount: match,
+        totalCount: myList.length,
+        matchPercentage: pct,
+        distance: store ? (store.distanceKm || null) : null,
+        open: store ? store.isOpen : null,
+        medicines: myList.map(medId => {
+          const item = medInventory[medId]?.find(i => i.store === storeId);
+          return {
+            medicineId,
+            available: !!item,
+            stock: item ? item.stock : 0,
+            price: item ? item.price : null
+          };
+        })
+      });
+    });
+
+    results.sort((a, b) => b.matchCount - a.matchCount || b.matchPercentage - a.matchPercentage);
+
+    res.json({ pharmacies: results, myListCount: myList.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// Loyalty points
+
+
+// Prescription matching with Find All Medicines ─────────────────────
+router.post('/prescriptions/match', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Get user's prescription medicines (unconfirmed)
+    const prescriptions = db.prescriptions || [];
+    const confirmedPrescriptions = prescriptions.filter(p => p.status === 'verified');
+    const unconfirmedPrescriptions = prescriptions.filter(p => p.status !== 'verified');
+
+    // Extract medicine names from unconfirmed prescriptions
+    const unconfirmedNames = unconfirmedPrescriptions
+      .map(p => p.originalName)
+      .filter(name => name);
+
+    // Start with unconfirmed medicine names as search terms
+    const searchTerms = [...unconfirmedNames];
+
+    // Get inventory for all search terms
+    const medInventory = {};
+    searchTerms.forEach(term => {
+      const matches = db.medicines.filter(m =>
+        m.name.toLowerCase().includes(term.toLowerCase()) ||
+        (m.genericName && m.genericName.toLowerCase().includes(term.toLowerCase()))
+      );
+      matches.forEach(m => {
+        if (!medInventory[m._id]) medInventory[m._id] = [];
+        medInventory[m._id].push({ name: m.name, source: 'prescription' });
+      });
+    });
+
+    // If we have confirmed prescriptions, also search for those
+    if (confirmedPrescriptions.length > 0) {
+      confirmedPrescriptions.forEach(p => {
+        const meds = db.medicines.filter(m =>
+          m.name.toLowerCase().includes(p.originalName.toLowerCase()) ||
+          (m.genericName && m.genericName.toLowerCase().includes(p.originalName.toLowerCase()))
+        );
+        meds.forEach(m => {
+          if (!medInventory[m._id]) medInventory[m._id] = [];
+          medInventory[m._id].push({ name: m.name, source: 'confirmed prescription' });
+        });
+      });
+    }
+
+    // Get pharmacy availability for matched medicines
+    const medicineIds = Object.keys(medInventory);
+    if (!medicineIds.length) {
+      return res.json({
+        prescriptions: [],
+        unconfirmed: [],
+        confirmed: [],
+        pharmacies: [],
+        message: 'No medicines found from prescriptions'
+      });
+    }
+
+    // Get inventory for all matched medicines
+    const inventoryByMed = {};
+    medicineIds.forEach(medId => {
+      inventoryByMed[medId] = db.inventory.filter(i => i.medicine === medId);
+    });
+
+    // Build prescription results
+    const prescriptionResults = unconfirmedNames.map(name => ({
+      name,
+      confirmed: false,
+      source: 'prescription upload'
+    }));
+
+    const confirmedResults = confirmedPrescriptions.map(p => ({
+      name: p.originalName,
+      confirmed: true,
+      source: 'verified prescription'
+    }));
+
+    // Get pharmacy availability for each medicine
+    const pharmacyAvailability = {};
+    medicineIds.forEach(medId => {
+      const inventoryItems = inventoryByMed[medId] || [];
+      const stores = {};
+      inventoryItems.forEach(inv => {
+        const store = db.stores.find(s => s._id === inv.store);
+        if (store) {
+          stores[store._id] = {
+            name: store.name,
+            availability: inv.stock > 0 ? 'available' : 'out_of_stock',
+            stock: inv.stock,
+            price: inv.price
+          };
+        }
+      });
+      pharmacyAvailability[medId] = stores;
+    });
+
+    res.json({
+      prescriptions: {
+        unconfirmed: prescriptionResults,
+        confirmed: confirmedResults
+      },
+      pharmacyAvailability,
+      message: 'Prescription matching complete - review results above'
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.get('/loyalty', isUser, (req, res) => {
   try {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);

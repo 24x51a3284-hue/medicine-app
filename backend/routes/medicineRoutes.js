@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const https = require('https');
 const { readDB, writeDB } = require('../../db');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, isUser } = require('../middleware/auth');
 
 // ── Open FDA helper ──────────────────────────────────────────────
 function fetchFDA(url) {
@@ -142,16 +142,99 @@ router.get('/search', (req, res) => {
     const q = (req.query.q || '').toLowerCase().trim();
     if (!q) return res.json([]);
     const db = readDB();
-    const results = db.medicines.filter(m =>
-      m.name.toLowerCase().includes(q) ||
-      (m.genericName||'').toLowerCase().includes(q) ||
-      (m.category||'').toLowerCase().includes(q) ||
-      (m.manufacturer||'').toLowerCase().includes(q) ||
-      (m.uses||[]).some(u => u.toLowerCase().includes(q))
-    ).map(m => {
+
+    const exactNameMatches = [];
+    const genericNameMatches = [];
+    const brandAndOtherMatches = [];
+    const categoryUseMatches = [];
+    const fuzzyMatches = [];
+
+    const FUZZY_MAX_DISTANCE = 1;
+
+    const levenshtein = (s, t) => {
+      if (!s || !t) return Infinity;
+      const n = s.length, m = t.length;
+      if (n === 0) return m;
+      if (m === 0) return n;
+      let prev = [];
+      for (let i = 0; i <= n; i++) prev[i] = i;
+      for (let i = 1; i <= m; i++) {
+        let curr = [i];
+        for (let j = 1; j <= n; j++) {
+          if (s[j - 1] === t[i - 1]) {
+            curr.push(prev[j - 1]);
+          } else {
+            curr.push(Math.min(prev[j - 1] + 1, prev[j] + 1, curr[j - 1] + 1));
+          }
+        }
+        prev = curr;
+      }
+      return prev[n];
+    };
+
+    const stripDosage = name => name.replace(/\s+\d+(mg|g|mcg|ml|gram)?\s*$/i, '').trim();
+
+    db.medicines.forEach(m => {
+      const nameLower = m.name.toLowerCase();
+      const nameLowerNoDosage = stripDosage(nameLower);
+      const genericLower = (m.genericName || '').toLowerCase();
+      const dosageMatch = q.split(' ').some(term => nameLower.includes(term));
+
+      if (nameLower === q) {
+        exactNameMatches.push(m);
+      } else if (nameLower.startsWith(q)) {
+        exactNameMatches.push(m);
+      } else if (nameLower.includes(q)) {
+        brandAndOtherMatches.push(m);
+      } else if (FUZZY_MAX_DISTANCE >= 0 && levenshtein(q, nameLowerNoDosage) <= FUZZY_MAX_DISTANCE) {
+        fuzzyMatches.push(m);
+      }
+
+      if (genericLower === q) {
+        genericNameMatches.push(m);
+      } else if (genericLower.includes(q)) {
+        brandAndOtherMatches.push(m);
+      } else if (FUZZY_MAX_DISTANCE >= 0 && levenshtein(q, genericLower) <= FUZZY_MAX_DISTANCE) {
+        fuzzyMatches.push(m);
+      }
+
+      if (m.category && m.category.toLowerCase().includes(q)) {
+        categoryUseMatches.push(m);
+      }
+
+      if (m.uses && m.uses.some(u => u.toLowerCase().includes(q))) {
+        categoryUseMatches.push(m);
+      }
+
+      if (m.manufacturer && m.manufacturer.toLowerCase().includes(q)) {
+        brandAndOtherMatches.push(m);
+      }
+    });
+
+    const allMatches = [...exactNameMatches, ...genericNameMatches, ...brandAndOtherMatches, ...categoryUseMatches, ...fuzzyMatches];
+    const seen = new Set();
+    const uniqueMatches = allMatches.filter(m => {
+      if (seen.has(m._id)) return false;
+      seen.add(m._id);
+      return true;
+    });
+
+    // Priority: exact name > starts with > contains > generic > category/uses > fuzzy
+    const priority = m => {
+      if (exactNameMatches.includes(m)) return 0;
+      if (genericNameMatches.includes(m)) return 1;
+      if (brandAndOtherMatches.includes(m)) return 2;
+      if (categoryUseMatches.includes(m)) return 3;
+      return 4;
+    };
+
+    const sorted = [...allMatches].sort((a, b) => priority(a) - priority(b) || b.name.localeCompare(a.name));
+
+    const results = sorted.map(m => {
       const prices = db.inventory.filter(i => i.medicine === m._id && i.stock > 0).map(i => i.price);
       return { ...m, lowestPrice: prices.length ? Math.min(...prices) : null, storeCount: prices.length };
     });
+
     res.json(results);
   } catch(err) { res.status(500).json({ message: err.message }); }
 });
@@ -274,6 +357,102 @@ router.put('/:id', authMiddleware, (req, res) => {
     writeDB(db);
     res.json(db.medicines[idx]);
   } catch(err) { res.status(500).json({ message: err.message }); }
+});
+
+// User's medicine list
+router.get('/my-list', isUser, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    let list = user.medicineList;
+    if (!list) list = [];
+    res.json(list);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.post('/my-list', isUser, (req, res) => {
+  try {
+    const { action, medicineId } = req.body; // action: 'add' | 'remove'
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    let list = user.medicineList;
+    if (!list) list = [];
+    if (action === 'add' && !list.includes(medicineId)) list.push(medicineId);
+    if (action === 'remove' && list.includes(medicineId)) list = list.filter(id => id !== medicineId);
+    user.medicineList = list;
+    writeDB(db);
+    res.json({ list, count: list.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+// Find pharmacies having all user's medicines
+router.post('/find-pharmacies', isUser, (req, res) => {
+  try {
+    const db = readDB();
+    const user = db.users.find(u => u._id === req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const myList = user.medicineList || [];
+    if (!myList.length) return res.json({ pharmacies: [], message: 'Your medicine list is empty' });
+
+    const medInventory = {};
+    myList.forEach(medId => {
+      const items = db.inventory.filter(i => i.medicine === medId);
+      if (items.length) medInventory[medId] = items;
+    });
+
+    const pharmacyMatchCount = {};
+    myList.forEach(medId => {
+      const items = medInventory[medId] || [];
+      items.forEach(inv => {
+        const storeId = inv.store;
+        if (!pharmacyMatchCount[storeId]) pharmacyMatchCount[storeId] = 0;
+        pharmacyMatchCount[storeId]++;
+      });
+    });
+
+    const pharmacyTotal = {};
+    myList.forEach(medId => {
+      const items = medInventory[medId] || [];
+      items.forEach(inv => {
+        const storeId = inv.store;
+        if (!pharmacyTotal[storeId]) pharmacyTotal[storeId] = 0;
+        pharmacyTotal[storeId]++;
+      });
+    });
+
+    const results = [];
+    Object.keys(pharmacyMatchCount).forEach(storeId => {
+      const total = pharmacyTotal[storeId] || 0;
+      const match = pharmacyMatchCount[storeId] || 0;
+      const pct = myList.length > 0 ? Math.round((match / myList.length) * 100) : 0;
+      const store = db.stores.find(s => s._id === storeId);
+      results.push({
+        storeId,
+        storeName: store ? store.name : 'Unknown Store',
+        matchCount: match,
+        totalCount: myList.length,
+        matchPercentage: pct,
+        distance: store ? (store.distanceKm || null) : null,
+        open: store ? store.isOpen : null,
+        medicines: myList.map(medId => {
+          const item = medInventory[medId]?.find(i => i.store === storeId);
+          return {
+            medicineId,
+            available: !!item,
+            stock: item ? item.stock : 0,
+            price: item ? item.price : null
+          };
+        })
+      });
+    });
+
+    results.sort((a, b) => b.matchCount - a.matchCount || b.matchPercentage - a.matchPercentage);
+
+    res.json({ pharmacies: results, myListCount: myList.length });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
 module.exports = router;

@@ -194,3 +194,110 @@ router.get('/:id/invoice', authMiddleware, (req, res) => {
 });
 
 module.exports = router;
+
+// Reservation workflow (coexists with orders) ────────────────────────
+const MAX_ACTIVE_RESERVATIONS = 3;
+
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    const { medicineId, pharmacyId } = req.body;
+    if (!medicineId || !pharmacyId) return res.status(400).json({ message: 'medicineId and pharmacyId required' });
+    const db = readDB();
+
+    const activeReservations = (db.reservations || [])
+      .filter(r => r.user === req.user.id && r.status === 'Pending').length;
+    if (activeReservations >= MAX_ACTIVE_RESERVATIONS) {
+      return res.status(400).json({ message: 'Maximum active reservations reached' });
+    }
+
+    const inventory = db.inventory.find(i => i.store === pharmacyId && i.medicine === medicineId);
+    if (!inventory || inventory.stock < 1) return res.status(400).json({ message: 'Medicine not available at this pharmacy' });
+
+    const duplicate = db.reservations?.find(
+      r => r.user === req.user.id && r.medicine === medicineId && r.pharmacy === pharmacyId && r.status === 'Pending'
+    );
+    if (duplicate) return res.status(400).json({ message: 'Already have a pending reservation for this medicine at this pharmacy' });
+
+    const reservation = {
+      _id: 'rsv' + Date.now(),
+      user: req.user.id,
+      medicine: medicineId,
+      pharmacy: pharmacyId,
+      status: 'Pending',
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    };
+
+    db.reservations = db.reservations || [];
+    db.reservations.push(reservation);
+    writeDB(db);
+    res.json({ reservation, message: 'Reservation request sent. Pharmacy has 30 minutes to confirm.' });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+router.get('/', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const list = (db.reservations || [])
+      .filter(r => r.user === req.user.id)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json(list);
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+router.put('/:id/confirm', authMiddleware, (req, res) => {
+  if (req.user.role !== 'store' && req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Only pharmacy staff can confirm reservations' });
+  }
+  try {
+    const db = readDB();
+    const reservation = db.reservations.find(r => r._id === req.params.id && r.pharmacy === req.user.id);
+    if (!reservation) return res.status(404).json({ message: 'Reservations not found or not for this pharmacy' });
+    const { status } = req.body;
+    if (!['Confirmed', 'Rejected'].includes(status)) return res.status(400).json({ message: 'Invalid status' });
+    reservation.status = status;
+    reservation.confirmedAt = new Date().toISOString();
+    if (status === 'Confirmed') {
+      // Stock reduction optional per spec: do not permanently reduce stock for pending reservation
+    }
+    reservation.status = status;
+    writeDB(db);
+    res.json({ reservation, message: `Reservation ${status.toLowerCase()}d` });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+router.put('/:id/cancel', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const reservation = db.reservations.find(r => r._id === req.params.id && r.user === req.user.id);
+    if (!reservation) return res.status(404).json({ message: 'Reservation not found' });
+    reservation.status = 'Cancelled';
+    writeDB(db);
+    res.json({ reservation, message: 'Reservation cancelled' });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+router.put('/:id/collect', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const reservation = db.reservations.find(r => r._id === req.params.id && r.user === req.user.id);
+    if (!reservation) return res.status(404).json({ message: 'Reservation not found' });
+    reservation.status = 'Collected';
+    writeDB(db);
+    res.json({ reservation, message: 'Marked as collected' });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+router.delete('/', authMiddleware, (req, res) => {
+  try {
+    const db = readDB();
+    const now = new Date();
+    db.reservations = (db.reservations || []).filter(r => {
+      if (r.status !== 'Expired') return true;
+      const expiry = new Date(r.expiresAt);
+      return now - expiry < 2 * 60 * 60 * 1000;
+    });
+    writeDB(db);
+    res.json({ message: 'Expired reservations cleaned up' });
+  } catch (e) { res.status(500).json({ message: e.message }); }
+});
