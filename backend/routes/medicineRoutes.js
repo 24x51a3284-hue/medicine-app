@@ -69,21 +69,26 @@ async function getFDAInfo(medicineName) {
 // ── Merge FDA data into a medicine object ───────────────────────
 function mergeFDA(med, fda) {
   if (!fda) return med;
-  return {
+  // Prioritize local generic name since it's from the validated database
+  // FDA data is only used for rich FDA sections (indications, warnings, dosage, etc.)
+  const updated = {
     ...med,
-    // Only override if FDA has better data
     manufacturer: fda.fdaManufacturer || med.manufacturer,
-    genericName:  fda.fdaGenericName  || med.genericName,
+    // Keep local generic name - it's from the validated database
+    // FDA generic name may differ or be for a different formulation
     route:        fda.fdaRoute        || med.route || 'Oral',
-    // Always add FDA-sourced rich info
-    fdaIndications:  fda.fdaIndications  ? fda.fdaIndications.substring(0, 600)  : null,
-    fdaWarnings:     fda.fdaWarnings     ? fda.fdaWarnings.substring(0, 500)     : null,
-    fdaDosage:       fda.fdaDosage       ? fda.fdaDosage.substring(0, 400)       : null,
-    fdaSideEffects:  fda.fdaSideEffects  ? fda.fdaSideEffects.substring(0, 500)  : null,
-    fdaContraindications: fda.fdaContraindications ? fda.fdaContraindications.substring(0, 400) : null,
-    fdaStorage:      fda.fdaStorage      ? fda.fdaStorage.substring(0, 300)      : null,
+    // Always add FDA-sourced rich info (but keep local genericName)
+    fdaIndications:  fda.fdaIndications  ? fda.fdaIndications.substring(0, 600)  : med.fdaIndications || null,
+    fdaWarnings:     fda.fdaWarnings     ? fda.fdaWarnings.substring(0, 500)     : med.fdaWarnings || null,
+    fdaDosage:       fda.fdaDosage       ? fda.fdaDosage.substring(0, 400)       : med.fdaDosage || null,
+    fdaSideEffects:  fda.fdaSideEffects  ? fda.fdaSideEffects.substring(0, 500)  : med.fdaSideEffects || null,
+    fdaContraindications: fda.fdaContraindications ? fda.fdaContraindications.substring(0, 400) : med.fdaContraindications || null,
+    fdaStorage:      fda.fdaStorage      ? fda.fdaStorage.substring(0, 300)      : med.fdaStorage || null,
     dataSource: 'OpenFDA + Local'
   };
+  // Ensure genericName stays from local database
+  updated.genericName = med.genericName;
+  return updated;
 }
 
 // ── GET /api/medicines/compare?name= — search with per-store price comparison ─
@@ -365,8 +370,9 @@ router.get('/my-list', isUser, (req, res) => {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+    // Ensure medicineList always exists
+    if (!user.medicineList) user.medicineList = [];
     let list = user.medicineList;
-    if (!list) list = [];
     res.json(list);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
@@ -377,8 +383,9 @@ router.post('/my-list', isUser, (req, res) => {
     const db = readDB();
     const user = db.users.find(u => u._id === req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
+    // Ensure medicineList always exists
+    if (!user.medicineList) user.medicineList = [];
     let list = user.medicineList;
-    if (!list) list = [];
     if (action === 'add' && !list.includes(medicineId)) list.push(medicineId);
     if (action === 'remove' && list.includes(medicineId)) list = list.filter(id => id !== medicineId);
     user.medicineList = list;

@@ -1,12 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const { readDB, writeDB } = require('../../db');
-const { authMiddleware } = require('../middleware/auth');
-const { isPharmacist } = require('../middleware/auth');
+const { authMiddleware, ROLES } = require('../middleware/auth');
 
 // Update inventory - real-time broadcast
-router.post('/', isPharmacist, (req, res) => {
+router.post('/', authMiddleware, (req, res) => {
   try {
+    // Check if user has PHARMACY or STORE role
+    const userRole = req.user.role ? req.user.role.toString().toUpperCase() : '';
+    const allowedRoles = [ROLES.PHARMACY, ROLES.STORE];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ message: 'Insufficient permissions - pharmacy or store staff only' });
+    }
     const { store, medicine, price, stock, discount, expiryDate } = req.body;
     const db = readDB();
     let inv = db.inventory.find(i => i.store === store && i.medicine === medicine);
@@ -23,16 +28,20 @@ router.post('/', isPharmacist, (req, res) => {
 });
 
 // Low stock items
-router.get('/low-stock', isPharmacist, (req, res) => {
+router.get('/low-stock', authMiddleware, (req, res) => {
   try {
+    // Check if user has PHARMACY or STORE role
+    const userRole = req.user.role ? req.user.role.toString().toUpperCase() : '';
+    const allowedRoles = [ROLES.PHARMACY, ROLES.STORE];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ message: 'Insufficient permissions - pharmacy or store staff only' });
+    }
     const db = readDB();
     const inventory = db.inventory.filter(i => i.store === req.query.store || (req.query.store === 'all' && true));
-    // If no store filter, get low stock for all, otherwise filter by store
     let items = db.inventory.filter(i => i.stock < 10);
     if (req.query.store) {
       items = items.filter(i => i.store === req.query.store);
     }
-    // Get medicine names
     const medIds = [...new Set(items.map(i => i.medicine))];
     const medicines = db.medicines.filter(m => medIds.includes(m._id));
     const medMap = {};
@@ -71,6 +80,12 @@ router.post('/manual-update', authMiddleware, (req, res) => {
 // Bulk update medicines from CSV-like data
 router.post('/bulk-update', authMiddleware, (req, res) => {
   try {
+    // Check if user has PHARMACY or STORE role
+    const userRole = req.user.role ? req.user.role.toString().toUpperCase() : '';
+    const allowedRoles = [ROLES.PHARMACY, ROLES.STORE];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ message: 'Insufficient permissions - pharmacy or store staff only' });
+    }
     const { medicines } = req.body;
     if (!medicines || !Array.isArray(medicines)) return res.status(400).json({ message: 'medicines array required' });
     const db = readDB();
@@ -93,8 +108,14 @@ router.post('/bulk-update', authMiddleware, (req, res) => {
 });
 
 // Get recently updated medicines
-router.get('/recent-updates', isPharmacist, (req, res) => {
+router.get('/recent-updates', authMiddleware, (req, res) => {
   try {
+    // Check if user has PHARMACY or STORE role
+    const userRole = req.user.role ? req.user.role.toString().toUpperCase() : '';
+    const allowedRoles = [ROLES.PHARMACY, ROLES.STORE];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ message: 'Insufficient permissions - pharmacy or store staff only' });
+    }
     const db = readDB();
     const inventoryWithUpdates = db.inventory
       .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
@@ -111,8 +132,14 @@ router.get('/recent-updates', isPharmacist, (req, res) => {
 });
 
 // Get frequently updated medicines
-router.get('/frequent-updates', isPharmacist, (req, res) => {
+router.get('/frequent-updates', authMiddleware, (req, res) => {
   try {
+    // Check if user has PHARMACY or STORE role
+    const userRole = req.user.role ? req.user.role.toString().toUpperCase() : '';
+    const allowedRoles = [ROLES.PHARMACY, ROLES.STORE];
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({ message: 'Insufficient permissions - pharmacy or store staff only' });
+    }
     const db = readDB();
     const inventory = db.inventory;
     const medicineUpdates = {};

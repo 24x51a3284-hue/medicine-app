@@ -301,3 +301,68 @@ router.delete('/', authMiddleware, (req, res) => {
     res.json({ message: 'Expired reservations cleaned up' });
   } catch (e) { res.status(500).json({ message: e.message }); }
 });
+
+// Cart management ────────────────────────
+router.post('/', authMiddleware, async (req, res) => {
+  try {
+    const { store, items, action } = req.body;
+    
+    if (action === 'clear') {
+      if (carts[req.user.id]) carts[req.user.id] = {};
+      return res.json({ message: 'Cart cleared', cart: {} });
+    }
+    
+    if (!store || !Array.isArray(items)) {
+      return res.status(400).json({ message: 'Store and items are required' });
+    }
+    
+    if (!carts[req.user.id]) carts[req.user.id] = {};
+    const cart = carts[req.user.id];
+    
+    if (action === 'add') {
+      for (const item of items) {
+        const inv = db.inventory.find(i => i.store === store && i.medicine === item.medicine);
+        if (!inv || inv.stock < item.quantity) {
+          return res.status(400).json({ message: 'Insufficient stock for ' + item.medicine });
+        }
+        cart[item.medicine] = {
+          ...item,
+          price: inv.price,
+          stock: inv.stock,
+          quantity: (cart[item.medicine] ? cart[item.medicine].quantity : 0) + item.quantity
+        };
+      }
+    } else if (action === 'remove') {
+      for (const item of items) {
+        delete cart[item.medicine];
+      }
+    } else {
+      for (const item of items) {
+        const inv = db.inventory.find(i => i.store === store && i.medicine === item.medicine);
+        if (!inv || inv.stock < item.quantity) {
+          return res.status(400).json({ message: 'Insufficient stock for ' + item.medicine });
+        }
+        cart[item.medicine] = {
+          ...item,
+          price: inv.price,
+          stock: inv.stock,
+          quantity: item.quantity
+        };
+      }
+    }
+    
+    res.json({ message: 'Cart updated', cart });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.get('/', authMiddleware, (req, res) => {
+  try {
+    const cart = carts[req.user.id] || {};
+    res.json(cart);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
+router.delete('/', authMiddleware, (req, res) => {
+  if (carts[req.user.id]) carts[req.user.id] = {};
+  res.json({ message: 'Cart cleared', cart: {} });
+});

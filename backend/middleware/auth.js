@@ -16,6 +16,7 @@ function authMiddleware(req, res, next) {
 const ROLES = {
   USER: "USER",
   PHARMACY: "PHARMACY",
+  STORE: "STORE",
   ADMIN: "ADMIN"
 };
 
@@ -23,6 +24,7 @@ const ROLES = {
 const ROLE_PERMISSIONS = {
   [ROLES.USER]: ["getProfile", "updateProfile", "searchMedicines", "createReservation"],
   [ROLES.PHARMACY]: ["getProfile", "updateProfile", "manageInventory", "viewAnalytics", "manageReservations"],
+  [ROLES.STORE]: ["getProfile", "updateProfile", "manageInventory", "viewAnalytics", "manageReservations"],
   [ROLES.ADMIN]: ["*"] // All permissions
 };
 
