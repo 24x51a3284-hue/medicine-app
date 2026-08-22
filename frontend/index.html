@@ -1,3 +1,81 @@
+<div id="page-home" class="page active">
+  <!-- Top Navbar -->
+  <nav style="padding:0 24px;background:rgba(10,15,30,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:64px;display:flex;align-items:center;justify-content:space-between;">
+    <a href="#" class="nav-logo" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:#fff;font-weight:900;font-size:1.3rem;" onclick="showPage('home');return false;">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">M</div>
+      <span style="font-weight:900;color:#fff;">MediFind</span>
+    </a>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <a href="#" class="nav-link" onclick="showPage('home');return false;" style="color:var(--text2);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;">Home</a>
+      <a href="#" class="nav-link" onclick="showPage('search');return false;" style="color:var(--primary);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;">Search</a>
+      <a href="#" class="nav-link" onclick="showPage('stores');return false;" style="color:var(--text2);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;">In-Stock</a>
+      <a href="#" class="nav-link" onclick="showPage('my-list');return false;" style="color:var(--text2);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;">My Medicines</a>
+      <a href="#" class="nav-link" onclick="showPage('profile');return false;" style="color:var(--text2);text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.9rem;display:none;">Profile</a>
+    </div>
+  </nav>
+
+  <!-- Hero / Search Section -->
+  <div class="hero" style="padding:80px 24px 40px;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);">
+    <div style="max-width:600px;margin:0 auto;text-align:center;">
+      <h1 style="font-size:clamp(2.5rem,6vw,3.8rem);font-weight:900;line-height:1.2;color:#fff;margin-bottom:16px;">
+        Find Your Medicine.
+        <br/>Compare Prices.
+        <br/>Save Time.
+      </h1>
+      <p style="color:var(--text2);font-size:1.15rem;max-width:520px;margin:0 auto 32px;">
+        Search for any medicine, compare prices across pharmacies, and find the best available deals near you.
+      </p>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px;display:inline-flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:0 auto;max-width:560px;">
+        <input type="text" id="home-search-input" class="search-input" style="flex:1;background:none;border:none;color:#fff;font-size:1rem;padding:10px 16px;outline:none;width:220px;" placeholder="Search Paracetamol, Crocin, Dolo...">
+        <button class="btn btn-primary" onclick="doSearch()" style="min-width:140px;">Search</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popular Medicines Section -->
+  <div style="margin-top:-120px;background:var(--bg);padding-bottom:32px;">
+    <div class="container">
+      <div class="section-header" style="margin-bottom:32px;">
+        <div class="section-title" style="font-size:1.25rem;">Popular Medicines</div>
+        <div class="section-sub" style="color:var(--text2);font-size:.85rem;">Quick selection</div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;" id="quick-meds"></div>
+    </div>
+  </div>
+
+  <!-- Nearby/In-Stock Pharmacies Preview -->
+  <div style="margin-top:80px;background:var(--bg2);border-radius:20px;padding:32px;text-align:center;">
+    <div style="display:inline-flex;background:var(--primary);color:white;border-radius:50px;padding:8px 16px;font-size:.85rem;margin-bottom:24px;">
+      🏪 <span style="font-weight:700;">In-Stock Pharmacies</span>
+    </div>
+    <p style="color:var(--text2);font-size:.95rem;max-width:400px;margin:0 auto;">Find pharmacies with your medicines available now</p>
+    <button class="btn btn-outline" onclick="showPage('stores')" style="font-size:.88rem;">Browse In-Stock Pharmacies</button>
+  </div>
+
+  <!-- How MediFind Works -->
+  <div style="margin-top:80px;padding:32px 0;background:var(--bg3);border-radius:20px;text-align:center;">
+    <div style="display:inline-flex;background:var(--accent);color:var(--bg);border-radius:50px;padding:6px 14px;font-size:.75rem;margin-bottom:24px;">
+      📋 How It Works
+    </div>
+    <div style="max-width:600px;margin:0 auto;color:var(--text2);">
+      <ol style="font-size:.95rem;max-width:500px;margin:0 auto;color:var(--text2);">
+        <li style="margin-bottom:12px;line-height:1.8;">🔍 <strong>Search</strong> for any medicine by name</li>
+        <li style="margin-bottom:12px;line-height:1.8;">💰 <strong>Compare</strong> prices across nearby pharmacies</li>
+        <li style="margin-bottom:12px;line-height:1.8;">🏪 <strong>Find</strong> a pharmacy with stock available</li>
+        <li style="margin-bottom:12px;line-height:1.8;">💊 <strong>Order</strong> and track delivery</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Emergency SOS -->
+  <div style="margin-top:40px;text-align:center;">
+    <div style="background:var(--danger);color:white;border-radius:50px;padding:6px 14px;font-size:.75rem;margin:0 auto 16px;max-width:200px;">
+      🆘 Emergency SOS
+    </div>
+    <button class="sos-btn" style="font-size:.85rem;padding:8px 16px;background:var(--danger);color:white;border:none;border-radius:8px;cursor:pointer;" onclick="triggerSOS()">Call 108 / 102</button>
+    <p style="color:var(--text2);font-size:.78rem;margin-top:8px;">Ambulance & Emergency Services</p>
+  </div>
+</div>
 <!DOCTYPE html>
 <!-- saved from url=(0056)file:///C:/Users/naik%20fawaz/Downloads/index_final.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
