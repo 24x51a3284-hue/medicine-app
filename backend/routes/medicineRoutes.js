@@ -440,7 +440,7 @@ router.post('/find-pharmacies', isUser, (req, res) => {
         medicines: myList.map(medId => {
           const item = medInventory[medId]?.find(i => i.store === storeId);
           return {
-            medicineId,
+            medicineId: medId,
             available: !!item,
             stock: item ? item.stock : 0,
             price: item ? item.price : null
